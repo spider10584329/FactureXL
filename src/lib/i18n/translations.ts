@@ -137,6 +137,7 @@ export const translations = {
     downloadPDF: "Download PDF",
     generatingPDF: "Generating PDF...",
     pdfGenerated: "PDF generated successfully",
+    errorGeneratingPDF: "Error generating PDF",
 
     // Transfers
     transferManagement: "Transfer Management",
@@ -355,6 +356,45 @@ export const translations = {
     errorUpdating: "Error updating",
     errorDeleting: "Error deleting",
     errorLoading: "Error loading",
+
+    // Toast Messages - Invoices
+    paymentSuccessful: "Payment successful!",
+    paymentCancelled: "Payment cancelled",
+    invoicePaidSuccess: "Invoice marked as paid",
+    invoicesPaidSuccess: "Invoices paid successfully",
+    errorPayment: "Error during payment",
+    errorBatchPayment: "Error during batch payment",
+    selectAtLeastOneInvoice: "Please select at least one invoice",
+    creatingPaymentSession: "Creating payment session...",
+    errorCreatingStripeSession: "Error creating Stripe session",
+    errorRedirectingStripe: "Error redirecting to Stripe",
+    errorLoadingInvoice: "Error loading invoice",
+
+    // Toast Messages - Transfers
+    errorConfirmingTransfer: "Error during confirmation",
+    errorRejectingTransfer: "Error during rejection",
+
+    // Toast Messages - Dashboard/Export
+    noInvoiceToExport: "No invoice to export for this period",
+    excelExportSuccess: "Excel export successful",
+    errorExcelExport: "Error during Excel export",
+
+    // Toast Messages - Profile
+    errorUpdatingProfile: "Error updating profile",
+    errorChangingPassword: "Error changing password",
+    passwordMinCharacters: "Password must contain at least 8 characters",
+
+    // Toast Messages - Auth
+    resetTokenMissing: "Reset token missing",
+    fillAllFields: "Please fill in all fields",
+    canNowLogin: "You can now log in",
+    invalidOrExpiredToken: "Invalid or expired token",
+    errorResettingPassword: "Error resetting password",
+    enterYourEmail: "Please enter your email",
+    resetEmailSentSuccess: "Reset email sent successfully",
+    checkYourInbox: "Check your inbox",
+    noAccountFoundWithEmail: "No account found with this email",
+    errorSendingEmail: "Error sending email",
   },
   fr: {
     // Header
@@ -494,6 +534,7 @@ export const translations = {
     downloadPDF: "Telecharger PDF",
     generatingPDF: "Generation du PDF en cours...",
     pdfGenerated: "PDF genere avec succes",
+    errorGeneratingPDF: "Erreur lors de la generation du PDF",
 
     // Transfers
     transferManagement: "Gestion des Virements",
@@ -712,6 +753,45 @@ export const translations = {
     errorUpdating: "Erreur lors de la mise a jour",
     errorDeleting: "Erreur lors de la suppression",
     errorLoading: "Erreur lors du chargement",
+
+    // Toast Messages - Invoices
+    paymentSuccessful: "Paiement effectue avec succes!",
+    paymentCancelled: "Paiement annule",
+    invoicePaidSuccess: "Facture marquee comme payee",
+    invoicesPaidSuccess: "Factures payees avec succes",
+    errorPayment: "Erreur lors du paiement",
+    errorBatchPayment: "Erreur lors du paiement groupe",
+    selectAtLeastOneInvoice: "Veuillez selectionner au moins une facture",
+    creatingPaymentSession: "Creation de la session de paiement...",
+    errorCreatingStripeSession: "Erreur lors de la creation de la session Stripe",
+    errorRedirectingStripe: "Erreur lors de la redirection vers Stripe",
+    errorLoadingInvoice: "Erreur lors du chargement de la facture",
+
+    // Toast Messages - Transfers
+    errorConfirmingTransfer: "Erreur lors de la confirmation",
+    errorRejectingTransfer: "Erreur lors du rejet",
+
+    // Toast Messages - Dashboard/Export
+    noInvoiceToExport: "Aucune facture a exporter pour cette periode",
+    excelExportSuccess: "Export Excel reussi",
+    errorExcelExport: "Erreur lors de l'export Excel",
+
+    // Toast Messages - Profile
+    errorUpdatingProfile: "Erreur lors de la mise a jour du profil",
+    errorChangingPassword: "Erreur lors du changement de mot de passe",
+    passwordMinCharacters: "Le mot de passe doit contenir au moins 8 caracteres",
+
+    // Toast Messages - Auth
+    resetTokenMissing: "Token de reinitialisation manquant",
+    fillAllFields: "Veuillez remplir tous les champs",
+    canNowLogin: "Vous pouvez maintenant vous connecter",
+    invalidOrExpiredToken: "Token invalide ou expire",
+    errorResettingPassword: "Erreur lors de la reinitialisation",
+    enterYourEmail: "Veuillez entrer votre email",
+    resetEmailSentSuccess: "Email de reinitialisation envoye avec succes",
+    checkYourInbox: "Verifiez votre boite de reception",
+    noAccountFoundWithEmail: "Aucun compte trouve avec cet email",
+    errorSendingEmail: "Erreur lors de l'envoi de l'email",
   },
 } as const;
 

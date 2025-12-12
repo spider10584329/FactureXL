@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { translations, Language, TranslationKey } from "./translations";
+import { setToastTranslate } from "../toast";
 
 interface LanguageContextType {
   language: Language;
@@ -46,6 +47,11 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     },
     [language]
   );
+
+  // Update toast translation function when language or t changes
+  useEffect(() => {
+    setToastTranslate(t);
+  }, [t]);
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage, t }}>

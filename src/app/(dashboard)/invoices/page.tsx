@@ -44,13 +44,13 @@ export default function InvoicesPage() {
   useEffect(() => {
     const payment = searchParams.get("payment");
     if (payment === "success") {
-      customToast.success("Paiement effectué avec succès!");
+      customToast.success("paymentSuccessful");
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
       setSelectedInvoices([]);
       // Clear URL parameters
       window.history.replaceState({}, "", "/invoices");
     } else if (payment === "cancelled") {
-      customToast.warning("Paiement annulé");
+      customToast.warning("paymentCancelled");
       // Clear URL parameters
       window.history.replaceState({}, "", "/invoices");
     }
@@ -76,10 +76,10 @@ export default function InvoicesPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
-      customToast.success("Facture supprimée avec succès");
+      customToast.success("invoiceDeleted");
     },
     onError: () => {
-      customToast.error("Erreur lors de la suppression");
+      customToast.error("errorDeleting");
     },
   });
 
@@ -93,12 +93,12 @@ export default function InvoicesPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
-      customToast.success("Facture marquée comme payée");
+      customToast.success("invoicePaidSuccess");
       setSelectedInvoices([]);
       setShowPaymentDialog(false);
     },
     onError: () => {
-      customToast.error("Erreur lors du paiement");
+      customToast.error("errorPayment");
     },
   });
 
@@ -116,12 +116,12 @@ export default function InvoicesPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["invoices"] });
-      customToast.success("Factures payées avec succès");
+      customToast.success("invoicesPaidSuccess");
       setSelectedInvoices([]);
       setShowPaymentDialog(false);
     },
     onError: () => {
-      customToast.error("Erreur lors du paiement groupé");
+      customToast.error("errorBatchPayment");
     },
   });
 
@@ -181,12 +181,12 @@ export default function InvoicesPage() {
     if (method === "card") {
       // Stripe integration
       if (selectedInvoices.length === 0) {
-        customToast.error("Veuillez sélectionner au moins une facture");
+        customToast.error("selectAtLeastOneInvoice");
         return;
       }
 
       try {
-        customToast.info("Création de la session de paiement...");
+        customToast.info("creatingPaymentSession");
 
         const response = await axios.post("/api/stripe/create-checkout", {
           invoiceIds: selectedInvoices,
@@ -196,11 +196,11 @@ export default function InvoicesPage() {
           // Redirect to Stripe Checkout
           window.location.href = response.data.url;
         } else {
-          customToast.error("Erreur lors de la création de la session Stripe");
+          customToast.error("errorCreatingStripeSession");
         }
       } catch (error) {
         console.error("Error creating Stripe checkout:", error);
-        customToast.error("Erreur lors de la redirection vers Stripe");
+        customToast.error("errorRedirectingStripe");
       }
     } else if (method === "transfer") {
       if (selectedInvoices.length > 0) {
@@ -222,7 +222,7 @@ export default function InvoicesPage() {
 
   const handleDownloadPDF = async (invoiceId: string) => {
     try {
-      customToast.info("Génération du PDF en cours...");
+      customToast.info("generatingPDF");
 
       // Fetch full invoice details with company info
       const response = await axios.get(`/api/invoices/${invoiceId}`);
@@ -231,10 +231,10 @@ export default function InvoicesPage() {
       // Generate and download PDF with current language
       downloadInvoicePDF(invoiceData, invoiceData.company, language);
 
-      customToast.success("PDF généré avec succès");
+      customToast.success("pdfGenerated");
     } catch (error) {
       console.error("Error generating PDF:", error);
-      customToast.error("Erreur lors de la génération du PDF");
+      customToast.error("errorGeneratingPDF");
     }
   };
 
@@ -244,7 +244,7 @@ export default function InvoicesPage() {
       setEditingInvoice(response.data);
     } catch (error) {
       console.error("Error fetching invoice:", error);
-      customToast.error("Erreur lors du chargement de la facture");
+      customToast.error("errorLoadingInvoice");
     }
   };
 
