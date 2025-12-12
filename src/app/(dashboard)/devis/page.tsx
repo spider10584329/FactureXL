@@ -165,13 +165,14 @@ export default function DevisPage() {
   };
 
   return (
-    <div className="container mx-auto py-6">
-      <div className="flex items-center justify-between mb-6">
+    <div className="container mx-auto py-6 px-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">{t("quotes")}</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">{t("quotes")}</h1>
         </div>
-        <Button onClick={() => setShowForm(true)} className="btn-angular bg-primary text-white hover:bg-primary/90">
-          <Plus className="mr-2 h-4 w-4" /> {language === "en" ? "New Quote" : "Nouveau devis"}
+        <Button onClick={() => setShowForm(true)} className="btn-angular bg-primary text-white hover:bg-primary/90 w-full sm:w-auto">
+          <Plus className="mr-2 h-4 w-4" /> 
+          <span className="whitespace-nowrap">{language === "en" ? "New Quote" : "Nouveau devis"}</span>
         </Button>
       </div>
 
@@ -261,16 +262,18 @@ export default function DevisPage() {
       <Dialog open={!!viewingDevis} onOpenChange={(open) => !open && setViewingDevis(null)}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 -mx-6 -mt-6 px-6 py-4 border-b">
-            <DialogTitle className="text-xl font-semibold text-primary flex items-center gap-2">
-              <Eye className="h-5 w-5" />
-              {language === "en" ? "Quote Details" : "Détails du devis"} - {viewingDevis?.ref}
+            <DialogTitle className="text-lg sm:text-xl font-semibold text-primary flex items-center gap-2 flex-wrap">
+              <Eye className="h-5 w-5 flex-shrink-0" />
+              <span className="break-all">
+                {language === "en" ? "Quote Details" : "Détails du devis"} - {viewingDevis?.ref}
+              </span>
             </DialogTitle>
           </DialogHeader>
 
           {viewingDevis && (
             <div className="space-y-6 mt-4">
               {/* Client Info */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label className="text-muted-foreground text-sm">{t("client")}</Label>
                   <p className="font-semibold">{viewingDevis.client?.name || "-"}</p>
@@ -298,35 +301,37 @@ export default function DevisPage() {
                 <div>
                   <Label className="text-muted-foreground text-sm mb-2 block">{t("articles")}</Label>
                   <div className="border rounded-lg overflow-hidden">
-                    <table className="w-full text-sm">
-                      <thead className="bg-muted/50">
-                        <tr>
-                          <th className="text-left py-2 px-3">{t("description")}</th>
-                          <th className="text-center py-2 px-3">{language === "en" ? "Qty" : "Qté"}</th>
-                          <th className="text-right py-2 px-3">{language === "en" ? "Price" : "Prix"}</th>
-                          <th className="text-right py-2 px-3">Total</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {viewingDevis.items.map((item: any, index: number) => (
-                          <tr key={index} className="border-t">
-                            <td className="py-2 px-3">{item.product || item.description}</td>
-                            <td className="text-center py-2 px-3">{item.quantity}</td>
-                            <td className="text-right py-2 px-3">{formatCurrency(item.price)}</td>
-                            <td className="text-right py-2 px-3 font-medium">
-                              {formatCurrency(item.quantity * item.price)}
-                            </td>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm min-w-[400px]">
+                        <thead className="bg-muted/50">
+                          <tr>
+                            <th className="text-left py-2 px-3">{t("description")}</th>
+                            <th className="text-center py-2 px-3 whitespace-nowrap">{language === "en" ? "Qty" : "Qté"}</th>
+                            <th className="text-right py-2 px-3 whitespace-nowrap">{language === "en" ? "Price" : "Prix"}</th>
+                            <th className="text-right py-2 px-3">Total</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody>
+                          {viewingDevis.items.map((item: any, index: number) => (
+                            <tr key={index} className="border-t">
+                              <td className="py-2 px-3">{item.product || item.description}</td>
+                              <td className="text-center py-2 px-3">{item.quantity}</td>
+                              <td className="text-right py-2 px-3 whitespace-nowrap">{formatCurrency(item.price)}</td>
+                              <td className="text-right py-2 px-3 font-medium whitespace-nowrap">
+                                {formatCurrency(item.quantity * item.price)}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </div>
               )}
 
               {/* Totals */}
               <div className="flex justify-end">
-                <div className="w-64 space-y-2">
+                <div className="w-full sm:w-64 space-y-2">
                   <div className="flex justify-between">
                     <span>{t("totalHT")}:</span>
                     <span className="font-medium">{formatCurrency(viewingDevis.totalHT || 0)}</span>
@@ -347,18 +352,18 @@ export default function DevisPage() {
               )}
 
               {/* Actions */}
-              <div className="flex justify-end gap-2 pt-4 border-t">
+              <div className="flex flex-col sm:flex-row justify-end gap-2 pt-4 border-t">
                 <Button
                   variant="outline"
                   onClick={() => setViewingDevis(null)}
-                  className="btn-angular"
+                  className="btn-angular w-full sm:w-auto"
                 >
                   <X className="h-4 w-4 mr-2" />
                   {t("close")}
                 </Button>
                 <Button
                   onClick={() => handleDownloadPDF(viewingDevis.id)}
-                  className="btn-angular bg-primary text-white hover:bg-primary/90"
+                  className="btn-angular bg-primary text-white hover:bg-primary/90 w-full sm:w-auto"
                 >
                   <FileDown className="h-4 w-4 mr-2" />
                   {t("downloadPDF")}
@@ -366,20 +371,21 @@ export default function DevisPage() {
                 <Button
                   onClick={async () => {
                     if (await confirm({
-                      title: language === "en" ? "Convert to Invoice" : "Convertir en facture",
+                      title: t("convertToInvoice"),
                       message: language === "en"
                         ? "Are you sure you want to convert this quote to an invoice?"
                         : "Voulez-vous vraiment convertir ce devis en facture?",
+                      confirmText: t("convert"),
                       type: "info"
                     })) {
                       convertToInvoiceMutation.mutate(viewingDevis.id);
                       setViewingDevis(null);
                     }
                   }}
-                  className="btn-angular bg-green-600 text-white hover:bg-green-700"
+                  className="btn-angular bg-green-600 text-white hover:bg-green-700 w-full sm:w-auto"
                 >
                   <ArrowRight className="h-4 w-4 mr-2" />
-                  {language === "en" ? "Convert to Invoice" : "Convertir"}
+                  {t("convertToInvoice")}
                 </Button>
               </div>
             </div>
@@ -390,7 +396,7 @@ export default function DevisPage() {
       {/* Devis List */}
       <Card className="card-angular">
         <CardHeader className="border-b">
-          <div className="relative max-w-sm">
+          <div className="relative w-full sm:max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder={t("searchByRefOrClient")}
@@ -400,7 +406,7 @@ export default function DevisPage() {
             />
           </div>
         </CardHeader>
-        <CardContent className="p-6">
+        <CardContent className="p-3 sm:p-6">
           {isLoading ? (
             <TableSkeleton rows={5} cols={7} />
           ) : filteredDevis.length === 0 ? (
@@ -408,101 +414,113 @@ export default function DevisPage() {
               <p className="text-lg">{language === "en" ? "No quote found" : "Aucun devis trouvé"}</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="table-angular">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>{t("reference")}</th>
-                    <th>{t("client")}</th>
-                    <th>{t("group")}</th>
-                    <th>{t("creationDate")}</th>
-                    <th>{language === "en" ? "Valid until" : "Valide jusqu'au"}</th>
-                    <th>{t("totalTTC")}</th>
-                    <th>{t("actions")}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredDevis.map((devis: any, index: number) => (
-                    <tr key={devis.id} className="hover:bg-muted/20 transition-colors">
-                      <td className="font-medium">{index + 1}</td>
-                      <td className="font-semibold text-primary">{devis.ref}</td>
-                      <td>{devis.client?.name || "-"}</td>
-                      <td>{devis.group?.name || "-"}</td>
-                      <td>{formatDate(devis.createdAt)}</td>
-                      <td>
-                        <div className="flex items-center gap-2">
-                          {devis.validUntil ? formatDate(devis.validUntil) : "-"}
-                          {devis.validUntil && isExpired(devis.validUntil) && (
-                            <Badge variant="danger" className="text-xs">
-                              {language === "en" ? "Expired" : "Expiré"}
-                            </Badge>
-                          )}
-                        </div>
-                      </td>
-                      <td className="font-bold text-primary">{formatCurrency(devis.total || 0)}</td>
-                      <td>
-                        <div className="flex items-center justify-center gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            title={language === "en" ? "View" : "Voir"}
-                            onClick={() => handleView(devis.id)}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            title={t("downloadPDF")}
-                            onClick={() => handleDownloadPDF(devis.id)}
-                          >
-                            <FileDown className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            title={language === "en" ? "Convert to invoice" : "Convertir en facture"}
-                            className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                            onClick={async () => {
-                              if (await confirm({
-                                title: language === "en" ? "Convert to Invoice" : "Convertir en facture",
-                                message: language === "en"
-                                  ? "Are you sure you want to convert this quote to an invoice?"
-                                  : "Voulez-vous vraiment convertir ce devis en facture?",
-                                type: "info"
-                              })) {
-                                convertToInvoiceMutation.mutate(devis.id);
-                              }
-                            }}
-                          >
-                            <ArrowRight className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            title={t("delete")}
-                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                            onClick={async () => {
-                              if (await confirm({
-                                title: t("delete"),
-                                message: language === "en"
-                                  ? "Are you sure you want to delete this quote?"
-                                  : "Voulez-vous vraiment supprimer ce devis?",
-                                type: "danger"
-                              })) {
-                                deleteMutation.mutate(devis.id);
-                              }
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </td>
+            <div className="overflow-x-auto -mx-3 sm:mx-0">
+              <div className="inline-block min-w-full align-middle">
+                <table className="table-angular min-w-full">
+                  <thead>
+                    <tr>
+                      <th className="px-2 sm:px-4">#</th>
+                      <th className="px-2 sm:px-4">{t("reference")}</th>
+                      <th className="px-2 sm:px-4 hidden sm:table-cell">{t("client")}</th>
+                      <th className="px-2 sm:px-4 hidden md:table-cell">{t("group")}</th>
+                      <th className="px-2 sm:px-4 hidden lg:table-cell">{t("creationDate")}</th>
+                      <th className="px-2 sm:px-4 hidden xl:table-cell">{language === "en" ? "Valid until" : "Valide jusqu'au"}</th>
+                      <th className="px-2 sm:px-4">{t("totalTTC")}</th>
+                      <th className="px-2 sm:px-4">{t("actions")}</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {filteredDevis.map((devis: any, index: number) => (
+                      <tr key={devis.id} className="hover:bg-muted/20 transition-colors">
+                        <td className="font-medium px-2 sm:px-4">{index + 1}</td>
+                        <td className="font-semibold text-primary px-2 sm:px-4">
+                          <div className="min-w-[100px]">{devis.ref}</div>
+                          <div className="sm:hidden text-xs text-muted-foreground mt-1">
+                            {devis.client?.name || "-"}
+                          </div>
+                        </td>
+                        <td className="px-2 sm:px-4 hidden sm:table-cell">{devis.client?.name || "-"}</td>
+                        <td className="px-2 sm:px-4 hidden md:table-cell">{devis.group?.name || "-"}</td>
+                        <td className="px-2 sm:px-4 hidden lg:table-cell">{formatDate(devis.createdAt)}</td>
+                        <td className="px-2 sm:px-4 hidden xl:table-cell">
+                          <div className="flex items-center gap-2">
+                            {devis.validUntil ? formatDate(devis.validUntil) : "-"}
+                            {devis.validUntil && isExpired(devis.validUntil) && (
+                              <Badge variant="danger" className="text-xs">
+                                {language === "en" ? "Expired" : "Expiré"}
+                              </Badge>
+                            )}
+                          </div>
+                        </td>
+                        <td className="font-bold text-primary px-2 sm:px-4">
+                          <div className="whitespace-nowrap">{formatCurrency(devis.total || 0)}</div>
+                        </td>
+                        <td className="px-2 sm:px-4">
+                          <div className="flex items-center justify-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              title={language === "en" ? "View" : "Voir"}
+                              onClick={() => handleView(devis.id)}
+                              className="h-8 w-8 p-0"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              title={t("downloadPDF")}
+                              onClick={() => handleDownloadPDF(devis.id)}
+                              className="h-8 w-8 p-0 hidden sm:inline-flex"
+                            >
+                              <FileDown className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              title={t("convertToInvoice")}
+                              className="text-green-600 hover:text-green-700 hover:bg-green-50 h-8 w-8 p-0 hidden md:inline-flex"
+                              onClick={async () => {
+                                if (await confirm({
+                                  title: t("convertToInvoice"),
+                                  message: language === "en"
+                                    ? "Are you sure you want to convert this quote to an invoice?"
+                                    : "Voulez-vous vraiment convertir ce devis en facture?",
+                                  confirmText: t("convert"),
+                                  type: "info"
+                                })) {
+                                  convertToInvoiceMutation.mutate(devis.id);
+                                }
+                              }}
+                            >
+                              <ArrowRight className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              title={t("delete")}
+                              className="text-destructive hover:text-destructive hover:bg-destructive/10 h-8 w-8 p-0"
+                              onClick={async () => {
+                                if (await confirm({
+                                  title: t("delete"),
+                                  message: language === "en"
+                                    ? "Are you sure you want to delete this quote?"
+                                    : "Voulez-vous vraiment supprimer ce devis?",
+                                  type: "danger"
+                                })) {
+                                  deleteMutation.mutate(devis.id);
+                                }
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </CardContent>

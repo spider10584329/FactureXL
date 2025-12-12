@@ -205,13 +205,13 @@ export default function GroupsPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">{t("groups")} & {t("articles")}</h1>
-          <p className="text-muted-foreground">{t("managePersonalInfo")}</p>
+          <h1 className="text-xl sm:text-2xl font-bold">{t("groups")} & {t("articles")}</h1>
+          <p className="text-sm text-muted-foreground">{t("managePersonalInfo")}</p>
         </div>
-        <Button onClick={() => setShowForm(true)} className="bg-primary hover:bg-primary/90">
+        <Button onClick={() => setShowForm(true)} className="bg-primary hover:bg-primary/90 w-full sm:w-auto">
           <Plus className="mr-2 h-4 w-4" /> {t("newGroup")}
         </Button>
       </div>
@@ -236,14 +236,14 @@ export default function GroupsPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="color">{t("color")}</Label>
-                <Input id="color" name="color" type="color" defaultValue={editingGroup?.color || "#3b82f6"} className="h-10" />
+                <Input id="color" name="color" type="color" defaultValue={editingGroup?.color || "#3b82f6"} className="h-10 w-full" />
               </div>
             </div>
-            <div className="flex gap-2 justify-end pt-4">
-              <Button type="button" variant="outline" onClick={handleCloseGroupModal}>
+            <div className="flex flex-col-reverse sm:flex-row gap-2 sm:justify-end pt-4">
+              <Button type="button" variant="outline" onClick={handleCloseGroupModal} className="w-full sm:w-auto">
                 {t("cancel")}
               </Button>
-              <Button type="submit" className="bg-primary hover:bg-primary/90">
+              <Button type="submit" className="bg-primary hover:bg-primary/90 w-full sm:w-auto">
                 {editingGroup ? t("update") : t("create")}
               </Button>
             </div>
@@ -253,15 +253,15 @@ export default function GroupsPage() {
 
       {/* Article Form Modal */}
       <Dialog open={showArticleForm} onOpenChange={(open) => !open && handleCloseArticleModal()}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {editingArticle ? t("editArticle") : t("newArticle")}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleArticleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              <div className="space-y-2 sm:col-span-2 md:col-span-1">
                 <Label>{t("articleTitle")} *</Label>
                 <Input name="title" defaultValue={editingArticle?.title} required />
               </div>
@@ -286,11 +286,11 @@ export default function GroupsPage() {
                 <Input name="tax" defaultValue={editingArticle?.tax || "20"} />
               </div>
             </div>
-            <div className="flex gap-2 justify-end pt-4">
-              <Button type="button" variant="outline" onClick={handleCloseArticleModal}>
+            <div className="flex flex-col-reverse sm:flex-row gap-2 sm:justify-end pt-4">
+              <Button type="button" variant="outline" onClick={handleCloseArticleModal} className="w-full sm:w-auto">
                 {t("cancel")}
               </Button>
-              <Button type="submit" className="bg-primary hover:bg-primary/90">
+              <Button type="submit" className="bg-primary hover:bg-primary/90 w-full sm:w-auto">
                 {editingArticle ? t("update") : t("addItem")}
               </Button>
             </div>
@@ -315,21 +315,21 @@ export default function GroupsPage() {
         <div className="space-y-4">
           {groups.map((group: any) => (
             <Card key={group.id}>
-              <CardHeader className="py-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3 cursor-pointer" onClick={() => toggleGroup(group.id)}>
+              <CardHeader className="py-3 sm:py-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center gap-2 sm:gap-3 cursor-pointer flex-1 min-w-0" onClick={() => toggleGroup(group.id)}>
                     {expandedGroups.has(group.id) ? (
-                      <ChevronDown className="h-5 w-5" />
+                      <ChevronDown className="h-5 w-5 flex-shrink-0" />
                     ) : (
-                      <ChevronRight className="h-5 w-5" />
+                      <ChevronRight className="h-5 w-5 flex-shrink-0" />
                     )}
-                    <div className="w-4 h-4 rounded" style={{ backgroundColor: group.color || "#3b82f6" }} />
-                    <span className="font-medium">{group.name}</span>
-                    <span className="text-sm text-muted-foreground">
+                    <div className="w-4 h-4 rounded flex-shrink-0" style={{ backgroundColor: group.color || "#3b82f6" }} />
+                    <span className="font-medium truncate">{group.name}</span>
+                    <span className="text-sm text-muted-foreground whitespace-nowrap">
                       ({group.articles?.length || 0} {t("articles")})
                     </span>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-shrink-0">
                     <Button
                       variant="outline"
                       size="sm"
@@ -338,8 +338,9 @@ export default function GroupsPage() {
                         setEditingArticle(null);
                         setShowArticleForm(true);
                       }}
+                      className="flex-1 sm:flex-initial"
                     >
-                      <Plus className="h-4 w-4 mr-1" /> {t("article")}
+                      <Plus className="h-4 w-4 sm:mr-1" /> <span className="hidden sm:inline">{t("article")}</span><span className="sm:hidden">Article</span>
                     </Button>
                     <Button
                       variant="ghost"
@@ -348,6 +349,7 @@ export default function GroupsPage() {
                         setEditingGroup(group);
                         setShowForm(true);
                       }}
+                      className="flex-shrink-0"
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
@@ -359,6 +361,7 @@ export default function GroupsPage() {
                           deleteGroupMutation.mutate(group.id);
                         }
                       }}
+                      className="flex-shrink-0"
                     >
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>
@@ -367,62 +370,66 @@ export default function GroupsPage() {
               </CardHeader>
 
               {expandedGroups.has(group.id) && (
-                <CardContent>
+                <CardContent className="p-3 sm:p-6">
                   {/* Articles Table */}
                   {group.articles?.length > 0 ? (
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b">
-                          <th className="text-left py-2 px-4">{t("articleTitle")}</th>
-                          <th className="text-left py-2 px-4">{t("articleCode")}</th>
-                          <th className="text-left py-2 px-4">{t("unit")}</th>
-                          <th className="text-right py-2 px-4">{t("price")}</th>
-                          <th className="text-right py-2 px-4">{t("tax")}</th>
-                          <th className="text-right py-2 px-4">{t("actions")}</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {group.articles.map((article: any) => (
-                          <tr key={article.id} className="border-b hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                            <td className="py-2 px-4">{article.title}</td>
-                            <td className="py-2 px-4">{article.code || "-"}</td>
-                            <td className="py-2 px-4">{article.unite || "-"}</td>
-                            <td className="py-2 px-4 text-right">{formatCurrency(article.price)}</td>
-                            <td className="py-2 px-4 text-right">{article.tax || 0}%</td>
-                            <td className="py-2 px-4">
-                              <div className="flex justify-end gap-2">
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => {
-                                    setEditingArticle(article);
-                                    setArticleGroupId(group.id);
-                                    setShowArticleForm(true);
-                                  }}
-                                >
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={async () => {
-                                    if (await confirm({ title: t("deleteArticle"), message: t("deleteArticleConfirm"), type: "danger" })) {
-                                      articleMutation.mutate({
-                                        groupId: group.id,
-                                        action: "delete-article",
-                                        articleId: article.id,
-                                      });
-                                    }
-                                  }}
-                                >
-                                  <Trash2 className="h-4 w-4 text-destructive" />
-                                </Button>
-                              </div>
-                            </td>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs sm:text-sm">
+                        <thead>
+                          <tr className="border-b">
+                            <th className="text-left py-2 px-2 sm:px-4 whitespace-nowrap min-w-[100px]">{t("articleTitle")}</th>
+                            <th className="text-left py-2 px-2 sm:px-4 whitespace-nowrap hidden sm:table-cell">{t("articleCode")}</th>
+                            <th className="text-left py-2 px-2 sm:px-4 whitespace-nowrap hidden md:table-cell">{t("unit")}</th>
+                            <th className="text-right py-2 px-2 sm:px-4 whitespace-nowrap">{t("price")}</th>
+                            <th className="text-right py-2 px-2 sm:px-4 whitespace-nowrap hidden sm:table-cell">{t("tax")}</th>
+                            <th className="text-right py-2 px-2 sm:px-4 whitespace-nowrap">{t("actions")}</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody>
+                          {group.articles.map((article: any) => (
+                            <tr key={article.id} className="border-b hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                              <td className="py-2 px-2 sm:px-4 truncate max-w-[150px]" title={article.title}>{article.title}</td>
+                              <td className="py-2 px-2 sm:px-4 hidden sm:table-cell">{article.code || "-"}</td>
+                              <td className="py-2 px-2 sm:px-4 hidden md:table-cell">{article.unite || "-"}</td>
+                              <td className="py-2 px-2 sm:px-4 text-right whitespace-nowrap">{formatCurrency(article.price)}</td>
+                              <td className="py-2 px-2 sm:px-4 text-right hidden sm:table-cell">{article.tax || 0}%</td>
+                              <td className="py-2 px-2 sm:px-4">
+                                <div className="flex justify-end gap-1 sm:gap-2">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => {
+                                      setEditingArticle(article);
+                                      setArticleGroupId(group.id);
+                                      setShowArticleForm(true);
+                                    }}
+                                    className="h-8 w-8"
+                                  >
+                                    <Edit className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={async () => {
+                                      if (await confirm({ title: t("deleteArticle"), message: t("deleteArticleConfirm"), type: "danger" })) {
+                                        articleMutation.mutate({
+                                          groupId: group.id,
+                                          action: "delete-article",
+                                          articleId: article.id,
+                                        });
+                                      }
+                                    }}
+                                    className="h-8 w-8"
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-destructive" />
+                                  </Button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   ) : (
                     <p className="text-center text-muted-foreground py-4">
                       {t("noDataFound")}

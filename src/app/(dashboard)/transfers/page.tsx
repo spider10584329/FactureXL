@@ -123,74 +123,72 @@ export default function TransfersPage() {
   const stats = calculateStats();
 
   return (
-    <div className="container mx-auto py-6">
+    <div className="container mx-auto py-6 px-4">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">{t("transferManagement")}</h1>
-          <p className="text-muted-foreground mt-1">
-            {t("confirmOrRejectTransfers")}
-          </p>
-        </div>
+      <div className="mb-6">
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground">{t("transferManagement")}</h1>
+        <p className="text-sm sm:text-base text-muted-foreground mt-1">
+          {t("confirmOrRejectTransfers")}
+        </p>
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6">
         <Card className="card-angular">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground mb-1">{t("pending")}</p>
-                <p className="text-3xl font-bold text-warning">{stats.pending}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground mb-1">{t("pending")}</p>
+                <p className="text-2xl sm:text-3xl font-bold text-warning">{stats.pending}</p>
               </div>
-              <div className="h-12 w-12 rounded-full bg-warning/10 flex items-center justify-center">
-                <Clock className="h-6 w-6 text-warning" />
+              <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-warning/10 flex items-center justify-center flex-shrink-0">
+                <Clock className="h-5 w-5 sm:h-6 sm:w-6 text-warning" />
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card className="card-angular">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground mb-1">{t("confirmed")}</p>
-                <p className="text-3xl font-bold text-success">{stats.confirmed}</p>
+                <p className="text-xs sm:text-sm text-muted-foreground mb-1">{t("confirmed")}</p>
+                <p className="text-2xl sm:text-3xl font-bold text-success">{stats.confirmed}</p>
               </div>
-              <div className="h-12 w-12 rounded-full bg-success/10 flex items-center justify-center">
-                <CheckCircle className="h-6 w-6 text-success" />
+              <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-success/10 flex items-center justify-center flex-shrink-0">
+                <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-success" />
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card className="card-angular">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">{t("total")}</p>
-                <p className="text-3xl font-bold text-primary">
-                  {roundToCFP(stats.total).toLocaleString('fr-FR')} CFP
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm text-muted-foreground mb-1">{t("total")}</p>
+                <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-primary break-words">
+                  {roundToCFP(stats.total).toLocaleString('fr-FR')} <span className="text-sm sm:text-base">CFP</span>
                 </p>
               </div>
-              <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                <Banknote className="h-6 w-6 text-primary" />
+              <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 ml-2">
+                <Banknote className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card className="card-angular">
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">{t("confirmedAmount")}</p>
-                <p className="text-3xl font-bold text-success">
-                  {roundToCFP(stats.confirmedAmount).toLocaleString('fr-FR')} CFP
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm text-muted-foreground mb-1">{t("confirmedAmount")}</p>
+                <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-success break-words">
+                  {roundToCFP(stats.confirmedAmount).toLocaleString('fr-FR')} <span className="text-sm sm:text-base">CFP</span>
                 </p>
               </div>
-              <div className="h-12 w-12 rounded-full bg-success/10 flex items-center justify-center">
-                <CheckCircle className="h-6 w-6 text-success" />
+              <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-success/10 flex items-center justify-center flex-shrink-0 ml-2">
+                <CheckCircle className="h-5 w-5 sm:h-6 sm:w-6 text-success" />
               </div>
             </div>
           </CardContent>
@@ -200,8 +198,8 @@ export default function TransfersPage() {
       {/* Main Card */}
       <Card className="card-angular">
         <CardHeader className="border-b">
-          <div className="flex flex-col sm:flex-row gap-4 justify-between">
-            <div className="relative flex-1 max-w-sm">
+          <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
+            <div className="relative w-full sm:max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder={t("searchByRefOrClient")}
@@ -210,10 +208,10 @@ export default function TransfersPage() {
                 className="pl-9"
               />
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2 sm:flex-nowrap">
               <Button
                 variant={filter === "all" ? "default" : "outline"}
-                className="btn-angular"
+                className="btn-angular flex-1 sm:flex-none"
                 size="sm"
                 onClick={() => setFilter("all")}
               >
@@ -221,7 +219,7 @@ export default function TransfersPage() {
               </Button>
               <Button
                 variant={filter === "confirmed" ? "default" : "outline"}
-                className="btn-angular"
+                className="btn-angular flex-1 sm:flex-none"
                 size="sm"
                 onClick={() => setFilter("confirmed")}
               >
@@ -229,7 +227,7 @@ export default function TransfersPage() {
               </Button>
               <Button
                 variant={filter === "pending" ? "default" : "outline"}
-                className="btn-angular"
+                className="btn-angular flex-1 sm:flex-none"
                 size="sm"
                 onClick={() => setFilter("pending")}
               >
@@ -238,7 +236,7 @@ export default function TransfersPage() {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="p-6">
+        <CardContent className="p-3 sm:p-6">
           {isLoading ? (
             <TableSkeleton rows={5} cols={8} />
           ) : filteredTransfers.length === 0 ? (
@@ -246,99 +244,109 @@ export default function TransfersPage() {
               <p className="text-lg">{t("noTransferFound")}</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="table-angular">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>{t("clients")}</th>
-                    <th>{t("reference")}</th>
-                    <th>{t("creationDate")}</th>
-                    <th>{t("totalTTC")}</th>
-                    <th>{t("status")}</th>
-                    <th>{t("paymentDate")}</th>
-                    <th>{t("actions")}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedTransfers.map((transfer: any, index: number) => (
-                    <tr key={transfer.id} className="hover:bg-muted/20 transition-colors">
-                      <td className="font-medium">{startIndex + index + 1}</td>
-                      <td>{transfer.client?.name || "-"}</td>
-                      <td className="font-semibold text-primary">{transfer.ref}</td>
-                      <td>{formatDate(transfer.createdAt)}</td>
-                      <td className="font-bold text-primary">
-                        {roundToCFP(transfer.total || 0).toLocaleString('fr-FR')} CFP
-                      </td>
-                      <td>
-                        {transfer.paid && transfer.lastPaymentMethod === "Virement" ? (
-                          <Badge variant="success" className="cursor-default">
-                            <CheckCircle className="h-3 w-3 mr-1" />
-                            {t("confirmed")}
-                          </Badge>
-                        ) : (
-                          <Badge variant="warning">
-                            <Clock className="h-3 w-3 mr-1" />
-                            {t("pending")}
-                          </Badge>
-                        )}
-                      </td>
-                      <td>
-                        {transfer.paymentDate ? formatDate(transfer.paymentDate) : "-"}
-                      </td>
-                      <td>
-                        <div className="flex items-center justify-center gap-1">
-                          {isOwnerOrAdmin && !transfer.paid && (
-                            <>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                title={t("confirmTransfer")}
-                                className="text-success hover:text-success hover:bg-success/10"
-                                onClick={async () => {
-                                  if (
-                                    await confirm({
-                                      title: t("confirmTransfer"),
-                                      message: t("confirmTransferQuestion"),
-                                      type: "info",
-                                    })
-                                  ) {
-                                    confirmTransferMutation.mutate(transfer.id);
-                                  }
-                                }}
-                              >
-                                <CheckCircle className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                title={t("rejectTransfer")}
-                                className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                                onClick={async () => {
-                                  if (
-                                    await confirm({
-                                      title: t("rejectTransfer"),
-                                      message: t("rejectTransferConfirm"),
-                                      type: "danger",
-                                    })
-                                  ) {
-                                    rejectTransferMutation.mutate(transfer.id);
-                                  }
-                                }}
-                              >
-                                <XCircle className="h-4 w-4" />
-                              </Button>
-                            </>
-                          )}
-                          {transfer.paid && transfer.lastPaymentMethod === "Virement" && (
-                            <span className="text-sm text-muted-foreground">{t("confirmed")}</span>
-                          )}
-                        </div>
-                      </td>
+            <div className="overflow-x-auto -mx-3 sm:mx-0">
+              <div className="inline-block min-w-full align-middle">
+                <table className="table-angular min-w-full">
+                  <thead>
+                    <tr>
+                      <th className="px-2 sm:px-4">#</th>
+                      <th className="px-2 sm:px-4">{t("clients")}</th>
+                      <th className="px-2 sm:px-4">{t("reference")}</th>
+                      <th className="px-2 sm:px-4 hidden lg:table-cell">{t("creationDate")}</th>
+                      <th className="px-2 sm:px-4">{t("totalTTC")}</th>
+                      <th className="px-2 sm:px-4">{t("status")}</th>
+                      <th className="px-2 sm:px-4 hidden xl:table-cell">{t("paymentDate")}</th>
+                      <th className="px-2 sm:px-4">{t("actions")}</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {paginatedTransfers.map((transfer: any, index: number) => (
+                      <tr key={transfer.id} className="hover:bg-muted/20 transition-colors">
+                        <td className="font-medium px-2 sm:px-4">{startIndex + index + 1}</td>
+                        <td className="px-2 sm:px-4">
+                          <div className="min-w-[100px]">{transfer.client?.name || "-"}</div>
+                        </td>
+                        <td className="font-semibold text-primary px-2 sm:px-4">
+                          <div className="min-w-[100px]">{transfer.ref}</div>
+                        </td>
+                        <td className="px-2 sm:px-4 hidden lg:table-cell">{formatDate(transfer.createdAt)}</td>
+                        <td className="font-bold text-primary px-2 sm:px-4">
+                          <div className="whitespace-nowrap text-sm sm:text-base">
+                            {roundToCFP(transfer.total || 0).toLocaleString('fr-FR')} <span className="text-xs sm:text-sm">CFP</span>
+                          </div>
+                        </td>
+                        <td className="px-2 sm:px-4">
+                          {transfer.paid && transfer.lastPaymentMethod === "Virement" ? (
+                            <Badge variant="success" className="cursor-default text-xs whitespace-nowrap">
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                              <span className="hidden sm:inline">{t("confirmed")}</span>
+                              <span className="sm:hidden">✓</span>
+                            </Badge>
+                          ) : (
+                            <Badge variant="warning" className="text-xs whitespace-nowrap">
+                              <Clock className="h-3 w-3 mr-1" />
+                              <span className="hidden sm:inline">{t("pending")}</span>
+                              <span className="sm:hidden">⏱</span>
+                            </Badge>
+                          )}
+                        </td>
+                        <td className="px-2 sm:px-4 hidden xl:table-cell">
+                          {transfer.paymentDate ? formatDate(transfer.paymentDate) : "-"}
+                        </td>
+                        <td className="px-2 sm:px-4">
+                          <div className="flex items-center justify-center gap-1">
+                            {isOwnerOrAdmin && !transfer.paid && (
+                              <>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  title={t("confirmTransfer")}
+                                  className="text-success hover:text-success hover:bg-success/10 h-8 w-8 p-0"
+                                  onClick={async () => {
+                                    if (
+                                      await confirm({
+                                        title: t("confirmTransfer"),
+                                        message: t("confirmTransferQuestion"),
+                                        type: "info",
+                                      })
+                                    ) {
+                                      confirmTransferMutation.mutate(transfer.id);
+                                    }
+                                  }}
+                                >
+                                  <CheckCircle className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  title={t("rejectTransfer")}
+                                  className="text-destructive hover:text-destructive hover:bg-destructive/10 h-8 w-8 p-0"
+                                  onClick={async () => {
+                                    if (
+                                      await confirm({
+                                        title: t("rejectTransfer"),
+                                        message: t("rejectTransferConfirm"),
+                                        type: "danger",
+                                      })
+                                    ) {
+                                      rejectTransferMutation.mutate(transfer.id);
+                                    }
+                                  }}
+                                >
+                                  <XCircle className="h-4 w-4" />
+                                </Button>
+                              </>
+                            )}
+                            {transfer.paid && transfer.lastPaymentMethod === "Virement" && (
+                              <span className="text-xs sm:text-sm text-muted-foreground hidden sm:inline">{t("confirmed")}</span>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
 

@@ -31,7 +31,7 @@ export function Pagination({
   // Generate page numbers to show
   const getPageNumbers = () => {
     const pages: (number | string)[] = [];
-    const maxVisible = 5;
+    const maxVisible = window.innerWidth < 640 ? 3 : 5; // Fewer pages on mobile
 
     if (totalPages <= maxVisible + 2) {
       // Show all pages if total is small
@@ -72,9 +72,9 @@ export function Pagination({
   }
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 pt-4 border-t">
-      {/* Items info */}
-      <div className="text-sm text-muted-foreground">
+    <div className="flex flex-col items-center justify-between gap-3 sm:gap-4 mt-4 sm:mt-6 pt-3 sm:pt-4 border-t">
+      {/* Items info - Hidden on very small screens */}
+      <div className="text-xs sm:text-sm text-muted-foreground text-center hidden xs:block">
         {language === "en" ? (
           <>Showing <span className="font-medium text-foreground">{startItem}</span> to <span className="font-medium text-foreground">{endItem}</span> of <span className="font-medium text-foreground">{totalItems}</span> results</>
         ) : (
@@ -82,17 +82,22 @@ export function Pagination({
         )}
       </div>
 
-      <div className="flex items-center gap-4">
+      {/* Simplified info for very small screens */}
+      <div className="text-xs text-muted-foreground text-center xs:hidden">
+        <span className="font-medium text-foreground">{startItem}-{endItem}</span> {language === "en" ? "of" : "sur"} <span className="font-medium text-foreground">{totalItems}</span>
+      </div>
+
+      <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 w-full sm:w-auto">
         {/* Items per page selector */}
         {showItemsPerPage && onItemsPerPageChange && (
           <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">
+            <span className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">
               {language === "en" ? "Per page:" : "Par page:"}
             </span>
             <select
               value={itemsPerPage}
               onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
-              className="h-8 w-16 text-sm"
+              className="h-7 sm:h-8 w-14 sm:w-16 text-xs sm:text-sm rounded border border-input bg-background px-1"
             >
               <option value={10}>10</option>
               <option value={20}>20</option>
@@ -103,40 +108,40 @@ export function Pagination({
         )}
 
         {/* Pagination controls */}
-        <div className="flex items-center gap-1">
-          {/* First page */}
+        <div className="flex items-center gap-0.5 sm:gap-1">
+          {/* First page - Hidden on mobile */}
           <Button
             variant="outline"
             size="sm"
-            className="h-8 w-8 p-0"
+            className="h-7 w-7 sm:h-8 sm:w-8 p-0 hidden sm:flex"
             onClick={() => onPageChange(1)}
             disabled={currentPage === 1}
             title={language === "en" ? "First page" : "Première page"}
           >
-            <ChevronsLeft className="h-4 w-4" />
+            <ChevronsLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           </Button>
 
           {/* Previous page */}
           <Button
             variant="outline"
             size="sm"
-            className="h-8 w-8 p-0"
+            className="h-7 w-7 sm:h-8 sm:w-8 p-0"
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage === 1}
             title={language === "en" ? "Previous page" : "Page précédente"}
           >
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           </Button>
 
           {/* Page numbers */}
-          <div className="flex items-center gap-1 mx-1">
+          <div className="flex items-center gap-0.5 sm:gap-1 mx-0.5 sm:mx-1">
             {getPageNumbers().map((page, index) => (
               typeof page === "number" ? (
                 <Button
                   key={index}
                   variant={currentPage === page ? "default" : "outline"}
                   size="sm"
-                  className={`h-8 w-8 p-0 text-xs font-medium ${
+                  className={`h-7 w-7 sm:h-8 sm:w-8 p-0 text-xs font-medium ${
                     currentPage === page
                       ? "bg-primary text-white hover:bg-primary/90"
                       : "hover:bg-primary/10 hover:text-primary"
@@ -146,7 +151,7 @@ export function Pagination({
                   {page}
                 </Button>
               ) : (
-                <span key={index} className="px-1 text-muted-foreground">
+                <span key={index} className="px-0.5 sm:px-1 text-muted-foreground text-xs">
                   {page}
                 </span>
               )
@@ -157,24 +162,24 @@ export function Pagination({
           <Button
             variant="outline"
             size="sm"
-            className="h-8 w-8 p-0"
+            className="h-7 w-7 sm:h-8 sm:w-8 p-0"
             onClick={() => onPageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
             title={language === "en" ? "Next page" : "Page suivante"}
           >
-            <ChevronRight className="h-4 w-4" />
+            <ChevronRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           </Button>
 
-          {/* Last page */}
+          {/* Last page - Hidden on mobile */}
           <Button
             variant="outline"
             size="sm"
-            className="h-8 w-8 p-0"
+            className="h-7 w-7 sm:h-8 sm:w-8 p-0 hidden sm:flex"
             onClick={() => onPageChange(totalPages)}
             disabled={currentPage === totalPages}
             title={language === "en" ? "Last page" : "Dernière page"}
           >
-            <ChevronsRight className="h-4 w-4" />
+            <ChevronsRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           </Button>
         </div>
       </div>

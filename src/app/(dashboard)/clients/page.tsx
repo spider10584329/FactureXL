@@ -93,7 +93,7 @@ export default function ClientsPage() {
     const data = {
       name: formData.get("name"),
       email: formData.get("email"),
-      password: formData.get("password") || "defaultPassword123",
+      password: formData.get("password") || "password123",
       role: "CLIENT",
       phone: formData.get("phone"),
       address: formData.get("address"),

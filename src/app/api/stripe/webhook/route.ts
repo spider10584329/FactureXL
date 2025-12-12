@@ -37,6 +37,13 @@ export async function POST(request: Request) {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
+        
+        // Check if this is a test mode payment
+        const isTestMode = session.livemode === false;
+        
+        if (isTestMode) {
+          console.log("⚠️ Test mode webhook received - processing test payment");
+        }
 
         // Extract invoice IDs from metadata
         const invoiceIds = session.metadata?.invoiceIds?.split(",") || [];
@@ -50,11 +57,17 @@ export async function POST(request: Request) {
             data: {
               paid: true,
               paymentDate: new Date(),
-              lastPaymentMethod: "Carte (Stripe)",
+              lastPaymentMethod: isTestMode 
+                ? "Carte (Stripe Test)" 
+                : "Carte (Stripe)",
             },
           });
 
-          console.log(`✅ Marked ${invoiceIds.length} invoices as paid via Stripe`);
+          console.log(
+            `✅ Marked ${invoiceIds.length} invoices as paid via Stripe${
+              isTestMode ? " (TEST MODE)" : ""
+            }`
+          );
         }
         break;
       }

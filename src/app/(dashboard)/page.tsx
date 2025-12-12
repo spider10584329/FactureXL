@@ -276,53 +276,53 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
         <Card className="card-angular bg-gradient-to-br from-blue-50 to-white dark:from-gray-800 dark:to-gray-900 border-blue-100 dark:border-gray-700">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-primary rounded-full">
-                <FileText className="h-6 w-6 text-white" />
+          <CardContent className="pt-4 sm:pt-6">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="p-2.5 sm:p-3 bg-primary rounded-full flex-shrink-0">
+                <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground dark:text-gray-400 uppercase font-medium">{t("totalInvoices")}</p>
-                <p className="text-2xl font-bold text-foreground dark:text-gray-100">{roundToCFP(totalRevenue).toLocaleString('fr-FR')} CFP</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm text-muted-foreground dark:text-gray-400 uppercase font-medium truncate">{t("totalInvoices")}</p>
+                <p className="text-xl sm:text-2xl font-bold text-foreground dark:text-gray-100 truncate">{roundToCFP(totalRevenue).toLocaleString('fr-FR')} CFP</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card className="card-angular bg-gradient-to-br from-primary/10 to-white dark:from-gray-800 dark:to-gray-900 border-primary/20 dark:border-gray-700">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-primary rounded-full">
-                <Users className="h-6 w-6 text-white" />
+          <CardContent className="pt-4 sm:pt-6">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="p-2.5 sm:p-3 bg-primary rounded-full flex-shrink-0">
+                <Users className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground dark:text-gray-400 uppercase font-medium">{t("clients")}</p>
-                <p className="text-2xl font-bold text-foreground dark:text-gray-100">{clients}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm text-muted-foreground dark:text-gray-400 uppercase font-medium truncate">{t("clients")}</p>
+                <p className="text-xl sm:text-2xl font-bold text-foreground dark:text-gray-100">{clients}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card className="card-angular bg-gradient-to-br from-indigo-50 to-white dark:from-gray-800 dark:to-gray-900 border-indigo-100 dark:border-gray-700">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-info rounded-full">
-                <FileText className="h-6 w-6 text-white" />
+          <CardContent className="pt-4 sm:pt-6">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="p-2.5 sm:p-3 bg-info rounded-full flex-shrink-0">
+                <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground dark:text-gray-400 uppercase font-medium">{t("invoices")}</p>
-                <p className="text-2xl font-bold text-foreground dark:text-gray-100">{invoiceCount}</p>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm text-muted-foreground dark:text-gray-400 uppercase font-medium truncate">{t("invoices")}</p>
+                <p className="text-xl sm:text-2xl font-bold text-foreground dark:text-gray-100">{invoiceCount}</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2">
         {/* Factures Table */}
         <Card className="card-angular">
           <CardHeader className="border-b">
@@ -333,16 +333,16 @@ export default function DashboardPage() {
               </span>
             </div>
           </CardHeader>
-          <CardContent className="p-6">
+          <CardContent className="p-3 sm:p-6">
             <div className="overflow-x-auto">
-              <table className="table-angular">
+              <table className="table-angular w-full">
                 <thead>
                   <tr>
-                    <th className="text-left py-2 px-2">#</th>
-                    <th className="text-left py-2 px-2">{language === "en" ? "Client" : "Client"}</th>
-                    <th className="text-left py-2 px-2">{t("reference")}</th>
-                    <th className="text-left py-2 px-2">{t("creationDate")}</th>
-                    <th className="text-right py-2 px-2">{t("total")}</th>
+                    <th className="text-left py-2 px-2 whitespace-nowrap">#</th>
+                    <th className="text-left py-2 px-2 whitespace-nowrap min-w-[120px]">{language === "en" ? "Client" : "Client"}</th>
+                    <th className="text-left py-2 px-2 whitespace-nowrap">{t("reference")}</th>
+                    <th className="text-left py-2 px-2 whitespace-nowrap hidden sm:table-cell">{t("creationDate")}</th>
+                    <th className="text-right py-2 px-2 whitespace-nowrap">{t("total")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -356,10 +356,10 @@ export default function DashboardPage() {
                     paginatedCurrentMonthInvoices.map((invoice: any, index: number) => (
                       <tr key={invoice.id}>
                         <td className="py-2 px-2 font-medium">{invoiceStartIndex + index + 1}</td>
-                        <td className="py-2 px-2">{invoice.client?.name || "-"}</td>
-                        <td className="py-2 px-2 font-semibold text-primary">{invoice.ref}</td>
-                        <td className="py-2 px-2">{formatDate(invoice.createdAt)}</td>
-                        <td className="py-2 px-2 text-right font-bold">{roundToCFP(invoice.total || 0).toLocaleString('fr-FR')} CFP</td>
+                        <td className="py-2 px-2 truncate max-w-[150px]" title={invoice.client?.name || "-"}>{invoice.client?.name || "-"}</td>
+                        <td className="py-2 px-2 font-semibold text-primary whitespace-nowrap">{invoice.ref}</td>
+                        <td className="py-2 px-2 hidden sm:table-cell whitespace-nowrap">{formatDate(invoice.createdAt)}</td>
+                        <td className="py-2 px-2 text-right font-bold whitespace-nowrap">{roundToCFP(invoice.total || 0).toLocaleString('fr-FR')} CFP</td>
                       </tr>
                     ))
                   )}
@@ -389,8 +389,8 @@ export default function DashboardPage() {
           <CardHeader className="border-b">
             <CardTitle className="text-lg font-semibold text-primary">{t("accountingEntries")}</CardTitle>
           </CardHeader>
-          <CardContent className="p-6 space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+          <CardContent className="p-3 sm:p-6 space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm text-muted-foreground font-medium">{t("startDate")}</label>
                 <input
@@ -415,51 +415,59 @@ export default function DashboardPage() {
               onClick={handleExportExcel}
             >
               <Download className="mr-2 h-4 w-4" />
-              {t("exportAccountingEntries")}
+              <span className="truncate">{t("exportAccountingEntries")}</span>
             </Button>
           </CardContent>
         </Card>
       </div>
 
       {/* Statistics Tables */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2">
         {/* Groupe Statistiques */}
         <Card className="card-angular">
           <CardHeader className="border-b">
             <CardTitle className="text-lg font-semibold text-primary">{t("groupStats")}</CardTitle>
           </CardHeader>
-          <CardContent className="p-6">
+          <CardContent className="p-3 sm:p-6">
             <div className="overflow-x-auto">
-              <table className="w-full text-xs">
-                <thead>
-                  <tr >
-                    <th className="py-2 px-2 text-left font-semibold text-muted-foreground">{language === "en" ? "Group" : "Groupe"}</th>
-                    {MONTHS.map((month) => (
-                      <th key={month} className="py-2 px-1 text-center font-semibold text-muted-foreground">{month}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {groups.length === 0 ? (
+              <div className="inline-block min-w-full align-middle">
+                <table className="w-full text-xs">
+                  <thead>
                     <tr>
-                      <td colSpan={13} className="text-center py-8 text-muted-foreground">
-                        {t("noGroup")}
-                      </td>
+                      <th className="sticky left-0 z-10 bg-white dark:bg-gray-800 py-2 px-2 text-left font-semibold text-muted-foreground border-r border-gray-200 dark:border-gray-700 min-w-[80px] sm:min-w-[120px]">
+                        {language === "en" ? "Group" : "Groupe"}
+                      </th>
+                      {MONTHS.map((month) => (
+                        <th key={month} className="py-2 px-1 text-center font-semibold text-muted-foreground whitespace-nowrap min-w-[40px] sm:min-w-[50px]">
+                          {month}
+                        </th>
+                      ))}
                     </tr>
-                  ) : (
-                    groups.map((group: any) => (
-                      <tr key={group.id} className="border-b border-dashed hover:bg-muted/20">
-                        <td className="py-2 px-2 font-medium text-primary">{group.name}</td>
-                        {groupMonthlyData[group.id]?.months.map((value: number, index: number) => (
-                          <td key={index} className="py-2 px-1 text-center font-medium">
-                            {value > 0 ? value.toFixed(0) : "-"}
-                          </td>
-                        ))}
+                  </thead>
+                  <tbody>
+                    {groups.length === 0 ? (
+                      <tr>
+                        <td colSpan={13} className="text-center py-8 text-muted-foreground">
+                          {t("noGroup")}
+                        </td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+                    ) : (
+                      groups.map((group: any) => (
+                        <tr key={group.id} className="border-b border-dashed hover:bg-muted/20">
+                          <td className="sticky left-0 z-10 bg-white dark:bg-gray-800 py-2 px-2 font-medium text-primary border-r border-gray-200 dark:border-gray-700 truncate max-w-[80px] sm:max-w-none" title={group.name}>
+                            {group.name}
+                          </td>
+                          {groupMonthlyData[group.id]?.months.map((value: number, index: number) => (
+                            <td key={index} className="py-2 px-1 text-center font-medium whitespace-nowrap">
+                              {value > 0 ? value.toFixed(0) : "-"}
+                            </td>
+                          ))}
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -469,38 +477,46 @@ export default function DashboardPage() {
           <CardHeader className="border-b">
             <CardTitle className="text-lg font-semibold text-primary">{t("employeeStats")}</CardTitle>
           </CardHeader>
-          <CardContent className="p-6">
+          <CardContent className="p-3 sm:p-6">
             <div className="overflow-x-auto">
-              <table className="w-full text-xs">
-                <thead>
-                  <tr >
-                    <th className="py-2 px-2 text-left font-semibold text-muted-foreground">{language === "en" ? "Employee" : "Employé"}</th>
-                    {MONTHS.map((month) => (
-                      <th key={month} className="py-2 px-1 text-center font-semibold text-muted-foreground">{month}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {Object.keys(employeeMonthlyData).length === 0 ? (
+              <div className="inline-block min-w-full align-middle">
+                <table className="w-full text-xs">
+                  <thead>
                     <tr>
-                      <td colSpan={13} className="text-center py-8 text-muted-foreground">
-                        {t("noEmployee")}
-                      </td>
+                      <th className="sticky left-0 z-10 bg-white dark:bg-gray-800 py-2 px-2 text-left font-semibold text-muted-foreground border-r border-gray-200 dark:border-gray-700 min-w-[80px] sm:min-w-[120px]">
+                        {language === "en" ? "Employee" : "Employé"}
+                      </th>
+                      {MONTHS.map((month) => (
+                        <th key={month} className="py-2 px-1 text-center font-semibold text-muted-foreground whitespace-nowrap min-w-[40px] sm:min-w-[50px]">
+                          {month}
+                        </th>
+                      ))}
                     </tr>
-                  ) : (
-                    Object.values(employeeMonthlyData).map((employee: any) => (
-                      <tr key={employee.name} className="border-b border-dashed hover:bg-muted/20">
-                        <td className="py-2 px-2 font-medium text-primary">{employee.name}</td>
-                        {employee.months.map((value: number, index: number) => (
-                          <td key={index} className="py-2 px-1 text-center font-medium">
-                            {value > 0 ? value.toFixed(0) : "-"}
-                          </td>
-                        ))}
+                  </thead>
+                  <tbody>
+                    {Object.keys(employeeMonthlyData).length === 0 ? (
+                      <tr>
+                        <td colSpan={13} className="text-center py-8 text-muted-foreground">
+                          {t("noEmployee")}
+                        </td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+                    ) : (
+                      Object.values(employeeMonthlyData).map((employee: any) => (
+                        <tr key={employee.name} className="border-b border-dashed hover:bg-muted/20">
+                          <td className="sticky left-0 z-10 bg-white dark:bg-gray-800 py-2 px-2 font-medium text-primary border-r border-gray-200 dark:border-gray-700 truncate max-w-[80px] sm:max-w-none" title={employee.name}>
+                            {employee.name}
+                          </td>
+                          {employee.months.map((value: number, index: number) => (
+                            <td key={index} className="py-2 px-1 text-center font-medium whitespace-nowrap">
+                              {value > 0 ? value.toFixed(0) : "-"}
+                            </td>
+                          ))}
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -509,7 +525,7 @@ export default function DashboardPage() {
       {/* Groupe/mois Chart - Line Chart with Circle Points */}
       <Card className="card-angular overflow-hidden">
         <CardHeader className="border-b">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
               <CardTitle className="text-lg font-semibold text-primary">{t("groupPerMonth")}</CardTitle>
               <p className="text-sm text-muted-foreground mt-1">{currentYear}</p>
@@ -521,12 +537,17 @@ export default function DashboardPage() {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="p-6">
-          <div className="h-96">
+        <CardContent className="p-3 sm:p-6">
+          <div className="h-64 sm:h-80 md:h-96 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart
                 data={chartData}
-                margin={{ top: 20, right: 30, left: 0, bottom: 20 }}
+                margin={{ 
+                  top: 20, 
+                  right: 10, 
+                  left: -10, 
+                  bottom: 20 
+                }}
               >
                 <CartesianGrid
                   strokeDasharray="3 3"
@@ -535,13 +556,14 @@ export default function DashboardPage() {
                 />
                 <XAxis
                   dataKey="name"
-                  tick={{ fontSize: 12, fill: "#6b7280", fontWeight: 500 }}
+                  tick={{ fontSize: 11, fill: "#6b7280", fontWeight: 500 }}
                   tickLine={false}
                   axisLine={{ stroke: "#e5e7eb" }}
                   dy={10}
+                  interval="preserveStartEnd"
                 />
                 <YAxis
-                  tick={{ fontSize: 11, fill: "#9ca3af" }}
+                  tick={{ fontSize: 10, fill: "#9ca3af" }}
                   tickLine={false}
                   axisLine={{ stroke: "#e5e7eb" }}
                   tickFormatter={(value) => {
@@ -549,34 +571,34 @@ export default function DashboardPage() {
                     if (value >= 1000) return `${(value / 1000).toFixed(0)}K`;
                     return value.toString();
                   }}
-                  width={60}
+                  width={50}
                 />
                 <Tooltip
                   content={({ active, payload, label }) => {
                     if (active && payload && payload.length) {
                       const total = payload.reduce((sum: number, entry: any) => sum + (entry.value || 0), 0);
                       return (
-                        <div className="bg-white p-4 rounded-lg shadow-lg border border-gray-200">
-                          <p className="font-semibold text-gray-900 mb-2 text-sm">{label} {currentYear}</p>
-                          <div className="space-y-1.5">
+                        <div className="bg-white p-3 sm:p-4 rounded-lg shadow-lg border border-gray-200 max-w-xs">
+                          <p className="font-semibold text-gray-900 mb-2 text-xs sm:text-sm">{label} {currentYear}</p>
+                          <div className="space-y-1 sm:space-y-1.5 max-h-48 overflow-y-auto">
                             {payload.map((entry: any, index: number) => (
-                              <div key={index} className="flex items-center justify-between gap-6 text-sm">
-                                <div className="flex items-center gap-2">
+                              <div key={index} className="flex items-center justify-between gap-3 sm:gap-6 text-xs sm:text-sm">
+                                <div className="flex items-center gap-2 min-w-0">
                                   <div
-                                    className="w-3 h-3 rounded-full"
+                                    className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full flex-shrink-0"
                                     style={{ backgroundColor: entry.color }}
                                   />
-                                  <span className="text-gray-600">{entry.name}</span>
+                                  <span className="text-gray-600 truncate">{entry.name}</span>
                                 </div>
-                                <span className="font-medium text-gray-900">
+                                <span className="font-medium text-gray-900 whitespace-nowrap text-xs sm:text-sm">
                                   {roundToCFP(entry.value || 0).toLocaleString('fr-FR')} CFP
                                 </span>
                               </div>
                             ))}
                           </div>
-                          <div className="mt-3 pt-2 border-t border-gray-200 flex justify-between">
-                            <span className="text-sm font-medium text-gray-500">Total</span>
-                            <span className="text-sm font-bold text-primary">
+                          <div className="mt-2 sm:mt-3 pt-2 border-t border-gray-200 flex justify-between">
+                            <span className="text-xs sm:text-sm font-medium text-gray-500">Total</span>
+                            <span className="text-xs sm:text-sm font-bold text-primary whitespace-nowrap">
                               {roundToCFP(total).toLocaleString('fr-FR')} CFP
                             </span>
                           </div>
@@ -589,14 +611,14 @@ export default function DashboardPage() {
                 <Legend
                   wrapperStyle={{ paddingTop: 20 }}
                   content={({ payload }) => (
-                    <div className="flex flex-wrap justify-center gap-6 mt-4">
+                    <div className="flex flex-wrap justify-center gap-3 sm:gap-6 mt-4 px-2">
                       {payload?.map((entry: any, index: number) => (
                         <div key={index} className="flex items-center gap-2">
                           <div
-                            className="w-3 h-3 rounded-full"
+                            className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full flex-shrink-0"
                             style={{ backgroundColor: entry.color }}
                           />
-                          <span className="text-sm text-gray-600">{entry.value}</span>
+                          <span className="text-xs sm:text-sm text-gray-600 truncate max-w-[120px] sm:max-w-none">{entry.value}</span>
                         </div>
                       ))}
                     </div>
@@ -610,12 +632,12 @@ export default function DashboardPage() {
                     stroke={COLORS[index % COLORS.length]}
                     strokeWidth={2}
                     dot={{
-                      r: 6,
+                      r: 4,
                       fill: COLORS[index % COLORS.length],
                       strokeWidth: 0,
                     }}
                     activeDot={{
-                      r: 8,
+                      r: 6,
                       fill: COLORS[index % COLORS.length],
                       strokeWidth: 2,
                       stroke: "#fff",

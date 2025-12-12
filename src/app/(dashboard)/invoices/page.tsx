@@ -43,12 +43,33 @@ export default function InvoicesPage() {
   // Handle Stripe payment callback
   useEffect(() => {
     const payment = searchParams.get("payment");
-    if (payment === "success") {
-      customToast.success("paymentSuccessful");
-      queryClient.invalidateQueries({ queryKey: ["invoices"] });
-      setSelectedInvoices([]);
-      // Clear URL parameters
-      window.history.replaceState({}, "", "/invoices");
+    const sessionId = searchParams.get("session_id");
+    
+    if (payment === "success" && sessionId) {
+      // Verify and process the payment
+      const processPayment = async () => {
+        try {
+          const response = await axios.post("/api/stripe/verify-payment", {
+            sessionId,
+          });
+          
+          if (response.data.success) {
+            customToast.success("paymentSuccessful");
+            queryClient.invalidateQueries({ queryKey: ["invoices"] });
+            setSelectedInvoices([]);
+          } else {
+            customToast.warning("paymentCancelled");
+          }
+        } catch (error) {
+          console.error("Error verifying payment:", error);
+          customToast.error("errorPayment");
+        } finally {
+          // Clear URL parameters
+          window.history.replaceState({}, "", "/invoices");
+        }
+      };
+      
+      processPayment();
     } else if (payment === "cancelled") {
       customToast.warning("paymentCancelled");
       // Clear URL parameters
@@ -249,15 +270,15 @@ export default function InvoicesPage() {
   };
 
   return (
-    <div className="container mx-auto py-6">
+    <div className="container mx-auto py-4 sm:py-6 px-3 sm:px-4">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">{t("invoices")}</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">{t("invoices")}</h1>
         </div>
         {isOwnerOrAdmin && (
           <Button
-            className="btn-angular bg-primary text-white hover:bg-primary/90"
+            className="btn-angular bg-primary text-white hover:bg-primary/90 w-full sm:w-auto"
             onClick={() => setShowNewInvoiceModal(true)}
           >
             <Plus className="mr-2 h-4 w-4" /> {t("newInvoice")}
@@ -267,34 +288,34 @@ export default function InvoicesPage() {
 
       {/* Payment Bar for Clients */}
       {isClient && selectedInvoices.length > 0 && (
-        <Card className="card-angular mb-6">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <span className="font-semibold text-foreground">
+        <Card className="card-angular mb-4 sm:mb-6">
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                <span className="font-semibold text-foreground text-sm sm:text-base">
                   {selectedInvoices.length} {t("invoicesSelected")}
                 </span>
-                <span className="text-2xl font-bold text-primary">
+                <span className="text-xl sm:text-2xl font-bold text-primary">
                   {roundToCFP(calculateSelectedTotal()).toLocaleString('fr-FR')} CFP
                 </span>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <Button
-                  className="btn-angular bg-primary text-white hover:bg-primary/90"
+                  className="btn-angular bg-primary text-white hover:bg-primary/90 w-full sm:w-auto text-sm"
                   onClick={() => handlePayment("card")}
                 >
                   <CreditCard className="mr-2 h-4 w-4" />
                   {t("cardPayment")}
                 </Button>
                 <Button
-                  className="btn-angular bg-secondary text-white hover:bg-secondary/90"
+                  className="btn-angular bg-secondary text-white hover:bg-secondary/90 w-full sm:w-auto text-sm"
                   onClick={() => handlePayment("transfer")}
                 >
                   <Banknote className="mr-2 h-4 w-4" />
                   {t("transferPayment")}
                 </Button>
                 <Button
-                  className="btn-angular bg-info text-white hover:bg-info/90"
+                  className="btn-angular bg-info text-white hover:bg-info/90 w-full sm:w-auto text-sm"
                   onClick={() => handlePayment("debit")}
                 >
                   <Landmark className="mr-2 h-4 w-4" />
@@ -308,21 +329,21 @@ export default function InvoicesPage() {
 
       {/* Main Card */}
       <Card className="card-angular">
-        <CardHeader className="border-b">
-          <div className="flex flex-col sm:flex-row gap-4 justify-between">
-            <div className="relative flex-1 max-w-sm">
+        <CardHeader className="border-b p-3 sm:p-6">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:items-center sm:justify-between">
+            <div className="relative w-full sm:max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder={t("searchByRefOrClient")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-9"
+                className="pl-9 w-full"
               />
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap sm:flex-nowrap">
               <Button
                 variant={filter === "all" ? "default" : "outline"}
-                className="btn-angular"
+                className="btn-angular flex-1 sm:flex-initial"
                 size="sm"
                 onClick={() => setFilter("all")}
               >
@@ -330,7 +351,7 @@ export default function InvoicesPage() {
               </Button>
               <Button
                 variant={filter === "paid" ? "default" : "outline"}
-                className="btn-angular"
+                className="btn-angular flex-1 sm:flex-initial"
                 size="sm"
                 onClick={() => setFilter("paid")}
               >
@@ -338,7 +359,7 @@ export default function InvoicesPage() {
               </Button>
               <Button
                 variant={filter === "pending" ? "default" : "outline"}
-                className="btn-angular"
+                className="btn-angular flex-1 sm:flex-initial"
                 size="sm"
                 onClick={() => setFilter("pending")}
               >
@@ -347,7 +368,7 @@ export default function InvoicesPage() {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="p-6">
+        <CardContent className="p-3 sm:p-6">
           {isLoading ? (
             <TableSkeleton rows={5} cols={isClient ? 7 : 8} />
           ) : filteredInvoices.length === 0 ? (
@@ -356,26 +377,26 @@ export default function InvoicesPage() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="table-angular">
+              <table className="table-angular w-full text-xs sm:text-sm">
                 <thead>
                   <tr>
-                    {isClient && <th>{t("paymentMethod")}</th>}
-                    <th>#</th>
-                    <th>{t("clients")}</th>
-                    <th>{t("reference")}</th>
-                    <th>{t("creationDate")}</th>
-                    <th>{t("totalHT")}</th>
-                    <th>{t("totalTTC")}</th>
-                    <th>{t("status")}</th>
-                    <th>{t("paymentDate")}</th>
-                    <th>{t("actions")}</th>
+                    {isClient && <th className="px-2 sm:px-4 py-2 whitespace-nowrap">{t("paymentMethod")}</th>}
+                    <th className="px-2 sm:px-4 py-2 whitespace-nowrap">#</th>
+                    <th className="px-2 sm:px-4 py-2 whitespace-nowrap min-w-[100px]">{t("clients")}</th>
+                    <th className="px-2 sm:px-4 py-2 whitespace-nowrap">{t("reference")}</th>
+                    <th className="px-2 sm:px-4 py-2 whitespace-nowrap hidden md:table-cell">{t("creationDate")}</th>
+                    <th className="px-2 sm:px-4 py-2 whitespace-nowrap hidden lg:table-cell">{t("totalHT")}</th>
+                    <th className="px-2 sm:px-4 py-2 whitespace-nowrap">{t("totalTTC")}</th>
+                    <th className="px-2 sm:px-4 py-2 whitespace-nowrap">{t("status")}</th>
+                    <th className="px-2 sm:px-4 py-2 whitespace-nowrap hidden xl:table-cell">{t("paymentDate")}</th>
+                    <th className="px-2 sm:px-4 py-2 whitespace-nowrap">{t("actions")}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {paginatedInvoices.map((invoice: any, index: number) => (
                     <tr key={invoice.id} className="hover:bg-muted/20 transition-colors">
                       {isClient && (
-                        <td>
+                        <td className="px-2 sm:px-4 py-2">
                           {!invoice.paid && (
                             <input
                               type="checkbox"
@@ -386,15 +407,15 @@ export default function InvoicesPage() {
                           )}
                         </td>
                       )}
-                      <td className="font-medium">{startIndex + index + 1}</td>
-                      <td>{invoice.client?.name || "-"}</td>
-                      <td className="font-semibold text-primary">{invoice.ref}</td>
-                      <td>{formatDate(invoice.createdAt)}</td>
-                      <td className="font-medium">{roundToCFP(invoice.totalHT || 0).toLocaleString('fr-FR')} CFP</td>
-                      <td className="font-bold text-primary">
+                      <td className="px-2 sm:px-4 py-2 font-medium">{startIndex + index + 1}</td>
+                      <td className="px-2 sm:px-4 py-2 truncate max-w-[120px]" title={invoice.client?.name || "-"}>{invoice.client?.name || "-"}</td>
+                      <td className="px-2 sm:px-4 py-2 font-semibold text-primary whitespace-nowrap">{invoice.ref}</td>
+                      <td className="px-2 sm:px-4 py-2 hidden md:table-cell whitespace-nowrap">{formatDate(invoice.createdAt)}</td>
+                      <td className="px-2 sm:px-4 py-2 font-medium hidden lg:table-cell whitespace-nowrap">{roundToCFP(invoice.totalHT || 0).toLocaleString('fr-FR')} CFP</td>
+                      <td className="px-2 sm:px-4 py-2 font-bold text-primary whitespace-nowrap">
                         {roundToCFP(invoice.total || 0).toLocaleString('fr-FR')} CFP
                       </td>
-                      <td>
+                      <td className="px-2 sm:px-4 py-2">
                         {invoice.paid ? (
                           <Badge variant="success" className="cursor-default">
                             <CheckCircle className="h-3 w-3 mr-1" />
@@ -413,11 +434,11 @@ export default function InvoicesPage() {
                           </Badge>
                         )}
                       </td>
-                      <td>
+                      <td className="px-2 sm:px-4 py-2 hidden xl:table-cell whitespace-nowrap">
                         {invoice.paymentDate ? formatDate(invoice.paymentDate) : "-"}
                       </td>
-                      <td>
-                        <div className="flex items-center justify-center gap-1">
+                      <td className="px-2 sm:px-4 py-2">
+                        <div className="flex items-center justify-center gap-0.5 sm:gap-1">
                           {isOwnerOrAdmin && (
                             <>
                               <Button
@@ -425,22 +446,24 @@ export default function InvoicesPage() {
                                 size="sm"
                                 title={t("edit")}
                                 onClick={() => handleEdit(invoice.id)}
+                                className="h-8 w-8 p-0"
                               >
-                                <Edit className="h-4 w-4" />
+                                <Edit className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                               </Button>
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 title={t("downloadPDF")}
                                 onClick={() => handleDownloadPDF(invoice.id)}
+                                className="h-8 w-8 p-0"
                               >
-                                <Download className="h-4 w-4" />
+                                <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                               </Button>
                               <Button
                                 variant="ghost"
                                 size="sm"
                                 title={t("delete")}
-                                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                className="text-destructive hover:text-destructive hover:bg-destructive/10 h-8 w-8 p-0"
                                 onClick={async () => {
                                   if (
                                     await confirm({
@@ -453,7 +476,7 @@ export default function InvoicesPage() {
                                   }
                                 }}
                               >
-                                <Trash2 className="h-4 w-4" />
+                                <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                               </Button>
                             </>
                           )}
@@ -463,8 +486,9 @@ export default function InvoicesPage() {
                               size="sm"
                               title={t("downloadPDF")}
                               onClick={() => handleDownloadPDF(invoice.id)}
+                              className="h-8 w-8 p-0"
                             >
-                              <Download className="h-4 w-4" />
+                              <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                             </Button>
                           )}
                         </div>

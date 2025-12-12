@@ -141,39 +141,39 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="container mx-auto py-6">
+    <div className="container mx-auto py-6 px-4">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-foreground">{t("myProfile")}</h1>
-        <p className="text-muted-foreground mt-1">{t("managePersonalInfo")}</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground">{t("myProfile")}</h1>
+        <p className="text-sm sm:text-base text-muted-foreground mt-1">{t("managePersonalInfo")}</p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
         {/* Profile Summary Card */}
         <Card className="card-angular lg:col-span-1">
           <CardHeader className="border-b">
-            <CardTitle className="text-lg font-semibold text-primary">{t("information")}</CardTitle>
+            <CardTitle className="text-base sm:text-lg font-semibold text-primary">{t("information")}</CardTitle>
           </CardHeader>
-          <CardContent className="p-6">
-            <div className="flex flex-col items-center text-center space-y-4">
-              <div className="h-24 w-24 rounded-full bg-primary/10 flex items-center justify-center">
-                <User className="h-12 w-12 text-primary" />
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex flex-col items-center text-center space-y-3 sm:space-y-4">
+              <div className="h-20 w-20 sm:h-24 sm:w-24 rounded-full bg-primary/10 flex items-center justify-center">
+                <User className="h-10 w-10 sm:h-12 sm:w-12 text-primary" />
               </div>
               <div>
-                <h3 className="text-xl font-bold text-foreground">{user?.name}</h3>
-                <p className="text-sm text-muted-foreground">{user?.email}</p>
+                <h3 className="text-lg sm:text-xl font-bold text-foreground break-words">{user?.name}</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground break-all">{user?.email}</p>
               </div>
               <Badge variant="default" className="mt-2">
                 {user?.role}
               </Badge>
               <div className="w-full pt-4 border-t space-y-2">
-                <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center justify-between text-xs sm:text-sm">
                   <span className="text-muted-foreground">{t("status")}</span>
                   <Badge variant={user?.isActive ? "success" : "danger"}>
                     {user?.isActive ? t("active") : t("inactive")}
                   </Badge>
                 </div>
                 {user?.code && (
-                  <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center justify-between text-xs sm:text-sm">
                     <span className="text-muted-foreground">Code</span>
                     <span className="font-mono font-medium">{user.code}</span>
                   </div>
@@ -186,15 +186,15 @@ export default function ProfilePage() {
         {/* Profile Edit Form */}
         <Card className="card-angular lg:col-span-2">
           <CardHeader className="border-b">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg font-semibold text-primary">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <CardTitle className="text-base sm:text-lg font-semibold text-primary">
                 {t("profileDetails")}
               </CardTitle>
               {!isEditing && (
                 <Button
                   variant="outline"
                   size="sm"
-                  className="btn-angular"
+                  className="btn-angular w-full sm:w-auto"
                   onClick={() => setIsEditing(true)}
                 >
                   {t("edit")}
@@ -202,9 +202,9 @@ export default function ProfilePage() {
               )}
             </div>
           </CardHeader>
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <form onSubmit={handleProfileUpdate} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">{t("name")}</Label>
                   <div className="relative">
@@ -284,10 +284,10 @@ export default function ProfilePage() {
               </div>
 
               {isEditing && (
-                <div className="flex gap-2 pt-4">
+                <div className="flex flex-col sm:flex-row gap-2 pt-4">
                   <Button
                     type="submit"
-                    className="btn-angular bg-primary text-white hover:bg-primary/90"
+                    className="btn-angular bg-primary text-white hover:bg-primary/90 w-full sm:w-auto"
                     disabled={updateProfileMutation.isPending}
                   >
                     <Save className="h-4 w-4 mr-2" />
@@ -296,7 +296,7 @@ export default function ProfilePage() {
                   <Button
                     type="button"
                     variant="outline"
-                    className="btn-angular"
+                    className="btn-angular w-full sm:w-auto"
                     onClick={() => {
                       setIsEditing(false);
                       setFormData({
@@ -319,17 +319,17 @@ export default function ProfilePage() {
       </div>
 
       {/* Change Password Section */}
-      <Card className="card-angular mt-6">
+      <Card className="card-angular mt-4 sm:mt-6">
         <CardHeader className="border-b">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg font-semibold text-primary">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <CardTitle className="text-base sm:text-lg font-semibold text-primary">
               {t("security")}
             </CardTitle>
             {!showPasswordSection && (
               <Button
                 variant="outline"
                 size="sm"
-                className="btn-angular"
+                className="btn-angular w-full sm:w-auto"
                 onClick={() => setShowPasswordSection(true)}
               >
                 <Lock className="h-4 w-4 mr-2" />
@@ -339,8 +339,8 @@ export default function ProfilePage() {
           </div>
         </CardHeader>
         {showPasswordSection && (
-          <CardContent className="p-6">
-            <form onSubmit={handlePasswordUpdate} className="space-y-4 max-w-md">
+          <CardContent className="p-4 sm:p-6">
+            <form onSubmit={handlePasswordUpdate} className="space-y-4 max-w-full sm:max-w-md">
               <div className="space-y-2">
                 <Label htmlFor="currentPassword">{t("currentPassword")}</Label>
                 <div className="relative">
@@ -417,10 +417,10 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              <div className="flex gap-2 pt-4">
+              <div className="flex flex-col sm:flex-row gap-2 pt-4">
                 <Button
                   type="submit"
-                  className="btn-angular bg-primary text-white hover:bg-primary/90"
+                  className="btn-angular bg-primary text-white hover:bg-primary/90 w-full sm:w-auto"
                   disabled={updatePasswordMutation.isPending}
                 >
                   <Save className="h-4 w-4 mr-2" />
@@ -429,7 +429,7 @@ export default function ProfilePage() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="btn-angular"
+                  className="btn-angular w-full sm:w-auto"
                   onClick={() => {
                     setShowPasswordSection(false);
                     setPasswordData({
