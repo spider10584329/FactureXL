@@ -69,12 +69,12 @@ export default function ProfilePage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["profile"] });
-      customToast.success("Profil mis à jour avec succès");
+      customToast.success(t("profileUpdated"));
       setIsEditing(false);
       update(); // Update session
     },
     onError: () => {
-      customToast.error("Erreur lors de la mise à jour du profil");
+      customToast.error(t("errorUpdatingProfile"));
     },
   });
 
@@ -84,7 +84,7 @@ export default function ProfilePage() {
       return await axios.post(`/api/users/${session?.user?.id}/change-password`, data);
     },
     onSuccess: () => {
-      customToast.success("Mot de passe modifié avec succès");
+      customToast.success(t("passwordUpdated"));
       setPasswordData({
         currentPassword: "",
         newPassword: "",
@@ -94,9 +94,9 @@ export default function ProfilePage() {
     },
     onError: (error: any) => {
       if (error.response?.status === 401) {
-        customToast.error("Mot de passe actuel incorrect");
+        customToast.error(t("incorrectPassword"));
       } else {
-        customToast.error("Erreur lors du changement de mot de passe");
+        customToast.error(t("errorChangingPassword"));
       }
     },
   });
@@ -110,12 +110,12 @@ export default function ProfilePage() {
     e.preventDefault();
 
     if (passwordData.newPassword.length < 8) {
-      customToast.error("Le mot de passe doit contenir au moins 8 caractères");
+      customToast.error(t("passwordMinCharacters"));
       return;
     }
 
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      customToast.error("Les mots de passe ne correspondent pas");
+      customToast.error(t("passwordMismatch"));
       return;
     }
 

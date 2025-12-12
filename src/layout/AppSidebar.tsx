@@ -34,6 +34,7 @@ import {
   Banknote,
   Shield,
   LucideIcon,
+  X,
 } from "lucide-react";
 import logoImage from "@/logo/facturexl_log.png";
 
@@ -166,7 +167,7 @@ const getOthersItems = (role: Role | undefined, t: (key: TranslationKey) => stri
 };
 
 const AppSidebar: React.FC = () => {
-  const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
+  const { isExpanded, isMobileOpen, isHovered, setIsHovered, toggleMobileSidebar } = useSidebar();
   const pathname = usePathname();
   const { data: session } = useSession();
   const { t } = useLanguage();
@@ -335,7 +336,7 @@ const AppSidebar: React.FC = () => {
 
   return (
     <aside
-      className={`fixed mt-16 flex flex-col lg:mt-0 top-0 px-5 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-50 border-r border-gray-200
+      className={`fixed flex flex-col top-0 px-5 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-50 border-r border-gray-200
         ${
           isExpanded || isMobileOpen
             ? "w-[290px]"
@@ -348,14 +349,25 @@ const AppSidebar: React.FC = () => {
       onMouseEnter={() => !isExpanded && setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Logo */}
+      {/* Close button for mobile - Only shown when sidebar is open */}
+      {isMobileOpen && (
+        <button
+          onClick={toggleMobileSidebar}
+          className="absolute top-4 right-4 lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 dark:text-gray-400 transition-colors"
+          aria-label="Close sidebar"
+        >
+          <X className="w-5 h-5" />
+        </button>
+      )}
+
+      {/* Logo - Hidden on mobile when sidebar is closed, always visible on desktop */}
       <div
-        className={`py-8 flex ${
+        className={`py-8 hidden lg:flex ${
           !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
         }`}
       >
         <Link href="/" className="flex items-center gap-2">
-          {isExpanded || isHovered || isMobileOpen ? (
+          {isExpanded || isHovered ? (
             <>
               <Image
                 src={logoImage}
@@ -379,6 +391,24 @@ const AppSidebar: React.FC = () => {
           )}
         </Link>
       </div>
+
+      {/* Logo for mobile - Only shown when sidebar is open */}
+      {isMobileOpen && (
+        <div className="py-8 flex lg:hidden justify-start">
+          <Link href="/" className="flex items-center gap-2">
+            <Image
+              src={logoImage}
+              alt="FactureXL Logo"
+              width={80}
+              height={40}
+              className="object-contain"
+            />
+            <span className="text-xl font-semibold text-gray-900 dark:text-white">
+              FactureXL
+            </span>
+          </Link>
+        </div>
+      )}
 
       {/* Navigation */}
       <div className="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar">
