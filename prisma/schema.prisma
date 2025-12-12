@@ -1,0 +1,197 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SUPER_ADMIN
+  OWNER
+  ADMIN
+  MANAGER
+  EMPLOYEE
+  CLIENT
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  password      String
+  role          Role
+  isActive      Boolean   @default(false)
+  photo         String?
+  contract      String?
+  address       String?
+  city          String?
+  zipCode       String?
+  phone         String?
+  discount      Float     @default(0)
+  activeInvoice Boolean   @default(false)
+  code          String?
+  turnover      Float?
+  paymentMethod String?
+  resetToken    String?   @unique
+  resetTokenExpiry DateTime?
+
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id])
+
+  clientInvoices   Invoice[] @relation("ClientInvoices")
+  employeeInvoices Invoice[] @relation("EmployeeInvoices")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([email])
+  @@index([role])
+}
+
+model Company {
+  id          String  @id @default(cuid())
+  name        String
+  email       String?
+  password    String?
+  codePostal  String?
+  city        String?
+  phone       String?
+  description String? @db.Text
+  address     String?
+  photo       String?
+  bank        String?
+  account     String?
+  iban        String?
+
+  users    User[]
+  groups   Group[]
+  invoices Invoice[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Group {
+  id      String  @id @default(cuid())
+  name    String
+  account String?
+  color   String?
+
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  articles Article[]
+  items    InvoiceItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+}
+
+model Article {
+  id          String  @id @default(cuid())
+  title       String
+  price       Float
+  code        String?
+  internRef   String?
+  unite       String?
+  description String? @db.Text
+  tax         String?
+
+  groupId String
+  group   Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([groupId])
+}
+
+model Invoice {
+  id                 String    @id @default(cuid())
+  ref                String
+  startDate          DateTime?
+  endDate            DateTime?
+  total              Float?
+  totalHT            Float?
+  wording            String?
+  type               String // 'invoice' | 'avoir' | 'devis'
+  commentary         String?   @db.Text
+  subscription       Boolean   @default(false)
+  subscriptionMonths String?   @db.Text // JSON array stored as string
+  month              Int?
+  archived           Boolean   @default(false)
+  paid               Boolean   @default(false)
+  paymentDate        DateTime?
+  lastPaymentMethod  String?
+
+  clientId String
+  client   User   @relation("ClientInvoices", fields: [clientId], references: [id])
+
+  employeeId String?
+  employee   User?   @relation("EmployeeInvoices", fields: [employeeId], references: [id])
+
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
+
+  items     InvoiceItem[]
+  transfers Transfer[]    @relation("InvoiceTransfers")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId])
+  @@index([clientId])
+  @@index([employeeId])
+  @@index([type])
+  @@index([paid])
+}
+
+model InvoiceItem {
+  id          String  @id @default(cuid())
+  internRef   String?
+  product     String
+  price       Float
+  quantity    Int
+  description String? @db.Text
+  discount    Float   @default(0)
+  unite       String?
+  tax         Float   @default(0)
+
+  invoiceId String
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  groupId String?
+  group   Group?  @relation(fields: [groupId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([invoiceId])
+  @@index([groupId])
+}
+
+model Tax {
+  id      String @id @default(cuid())
+  name    String
+  percent Float
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Transfer {
+  id          String    @id @default(cuid())
+  ref         String
+  amount      Float
+  paymentDate DateTime?
+
+  invoices Invoice[] @relation("InvoiceTransfers")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
