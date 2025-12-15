@@ -49,7 +49,6 @@ type NavItem = {
 
 // Get navigation items based on role
 const getNavItems = (role: Role | undefined, t: (key: TranslationKey) => string): NavItem[] => {
-  if (!role) return [];
 
   const allItems: NavItem[] = [
     {
@@ -60,11 +59,18 @@ const getNavItems = (role: Role | undefined, t: (key: TranslationKey) => string)
       roles: ["SUPER_ADMIN", "OWNER", "ADMIN", "MANAGER", "EMPLOYEE", "CLIENT"],
     },
     {
-      icon: <Building className="w-5 h-5" />,
-      name: t("companies"),
-      nameKey: "companies",
-      path: "/companies",
-      roles: ["SUPER_ADMIN"],
+      icon: <FileText className="w-5 h-5" />,
+      name: t("invoices"),
+      nameKey: "invoices",
+      path: "/invoices",
+      roles: ["OWNER", "ADMIN", "MANAGER", "EMPLOYEE", "CLIENT"],
+    },
+    {
+      icon: <FileCheck className="w-5 h-5" />,
+      name: t("quotes"),
+      nameKey: "quotes",
+      path: "/devis",
+      roles: ["OWNER", "ADMIN", "MANAGER", "EMPLOYEE"],
     },
     {
       icon: <Users className="w-5 h-5" />,
@@ -81,13 +87,6 @@ const getNavItems = (role: Role | undefined, t: (key: TranslationKey) => string)
       roles: ["OWNER", "ADMIN"],
     },
     {
-      icon: <Shield className="w-5 h-5" />,
-      name: t("users"),
-      nameKey: "users",
-      path: "/users",
-      roles: ["OWNER"],
-    },
-    {
       icon: <FolderOpen className="w-5 h-5" />,
       name: t("groups"),
       nameKey: "groups",
@@ -95,24 +94,10 @@ const getNavItems = (role: Role | undefined, t: (key: TranslationKey) => string)
       roles: ["OWNER", "ADMIN"],
     },
     {
-      icon: <FileText className="w-5 h-5" />,
-      name: t("invoices"),
-      nameKey: "invoices",
-      path: "/invoices",
-      roles: ["OWNER", "ADMIN", "MANAGER", "EMPLOYEE", "CLIENT"],
-    },
-    {
       icon: <FileX className="w-5 h-5" />,
       name: t("credits"),
       nameKey: "credits",
       path: "/avoirs",
-      roles: ["OWNER", "ADMIN", "MANAGER", "EMPLOYEE"],
-    },
-    {
-      icon: <FileCheck className="w-5 h-5" />,
-      name: t("quotes"),
-      nameKey: "quotes",
-      path: "/devis",
       roles: ["OWNER", "ADMIN", "MANAGER", "EMPLOYEE"],
     },
     {
@@ -123,18 +108,32 @@ const getNavItems = (role: Role | undefined, t: (key: TranslationKey) => string)
       roles: ["OWNER", "ADMIN"],
     },
     {
-      icon: <CalendarClock className="w-5 h-5" />,
-      name: t("subscriptionInvoices"),
-      nameKey: "subscriptionInvoices",
-      path: "/subscription-invoices",
-      roles: ["OWNER"],
-    },
-    {
       icon: <Percent className="w-5 h-5" />,
       name: t("taxes"),
       nameKey: "taxes",
       path: "/taxes",
       roles: ["OWNER", "ADMIN"],
+    },
+    {
+      icon: <Building className="w-5 h-5" />,
+      name: t("companies"),
+      nameKey: "companies",
+      path: "/companies",
+      roles: ["SUPER_ADMIN"],
+    },
+    {
+      icon: <Shield className="w-5 h-5" />,
+      name: t("users"),
+      nameKey: "users",
+      path: "/users",
+      roles: ["OWNER"],
+    },
+    {
+      icon: <CalendarClock className="w-5 h-5" />,
+      name: t("subscriptionInvoices"),
+      nameKey: "subscriptionInvoices",
+      path: "/subscription-invoices",
+      roles: ["OWNER"],
     },
   ];
 
