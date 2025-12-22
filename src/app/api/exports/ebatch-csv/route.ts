@@ -3,6 +3,9 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
+// Force dynamic rendering for this route (uses session/headers)
+export const dynamic = "force-dynamic";
+
 function formatDateDDMMYYYY(d: Date) {
   const dd = String(d.getDate()).padStart(2, "0");
   const mm = String(d.getMonth() + 1).padStart(2, "0");

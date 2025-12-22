@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("🌱 Starting minimal seed (no groups/articles)...\n");
+  console.log("🌱 Starting minimal seed - ESSENTIAL USERS ONLY...\n");
 
   // Clear existing data
   console.log("🗑️  Clearing existing data...");
@@ -46,8 +46,8 @@ async function main() {
   ]);
   console.log(`   ✅ Created ${taxes.length} taxes`);
 
-  // CREATE USERS
-  console.log("\n👥 Creating users...");
+  // CREATE USERS - ONLY ESSENTIAL 3 USERS
+  console.log("\n👥 Creating essential users...");
   const hashedPassword = await bcrypt.hash("password123", 10);
 
   const superAdmin = await prisma.user.create({
@@ -84,48 +84,23 @@ async function main() {
     },
   });
 
-  const employee = await prisma.user.create({
-    data: {
-      name: "Pierre Bernard",
-      email: "employee@facturexl.com",
-      password: hashedPassword,
-      role: "EMPLOYEE",
-      isActive: true,
-      companyId: company.id,
-      phone: "+687 333 333",
-    },
-  });
-
-  const client = await prisma.user.create({
-    data: {
-      name: "SCI Pacific",
-      email: "client@facturexl.com",
-      password: hashedPassword,
-      role: "CLIENT",
-      isActive: true,
-      companyId: company.id,
-      phone: "+687 444 444",
-    },
-  });
-
-  console.log(`   ✅ Created 5 users`);
+  console.log(`   ✅ Created 3 essential users (Super Admin, Owner, Administrator)`);
 
   console.log("\n" + "=".repeat(50));
-  console.log("✅ MINIMAL SEED COMPLETED!");
+  console.log("✅ ESSENTIAL SEED COMPLETED!");
   console.log("=".repeat(50));
   console.log("\n📊 Summary:");
   console.log(`   - 1 Company`);
   console.log(`   - ${taxes.length} Taxes`);
-  console.log(`   - 5 Users (Super Admin, Owner, Admin, Employee, Client)`);
+  console.log(`   - 3 Essential Users (Super Admin, Owner, Administrator)`);
   console.log(`   - 0 Invoices (create manually using the UI)`);
 
-  console.log("\n🔐 Login credentials:");
-  console.log("   All users have password: password123");
-  console.log("   - superadmin@facturexl.com (SUPER_ADMIN)");
-  console.log("   - owner@facturexl.com (OWNER)");
-  console.log("   - admin@facturexl.com (ADMIN)");
-  console.log("   - employee@facturexl.com (EMPLOYEE)");
-  console.log("   - client@facturexl.com (CLIENT)");
+  console.log("\n🔐 Login credentials (all use password: password123):");
+  console.log("   - superadmin@facturexl.com (SUPER_ADMIN) - Full system access");
+  console.log("   - owner@facturexl.com (OWNER) - Business owner");
+  console.log("   - admin@facturexl.com (ADMIN) - Administrator");
+
+  console.log("\n💡 Note: All other users must sign up through the registration process.");
 }
 
 main()

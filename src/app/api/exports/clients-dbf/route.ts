@@ -4,6 +4,9 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { DBFFile, type FieldDescriptor } from "dbffile";
 
+// Force dynamic rendering for this route (uses session/headers)
+export const dynamic = "force-dynamic";
+
 function safeString(value: unknown, maxLen: number) {
   const s = (value ?? "").toString();
   // DBF is typically not Unicode-friendly; keep it simple.
