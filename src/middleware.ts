@@ -16,9 +16,9 @@ export default withAuth(
 
     // Role-based route protection matching Angular AuthGuard
 
-    // SUPER_ADMIN - only companies and dashboard
+    // SUPER_ADMIN - only companies, dashboard, and profile
     if (role === "SUPER_ADMIN") {
-      const allowedPaths = ["/", "/companies"];
+      const allowedPaths = ["/", "/companies", "/profile"];
       if (!allowedPaths.some((p) => path === p || path.startsWith(p + "/"))) {
         return NextResponse.redirect(new URL("/", req.url));
       }

@@ -22,7 +22,9 @@ export default function UserDropdown() {
 
   const handleSignOut = () => {
     closeDropdown();
-    signOut({ callbackUrl: "/login" });
+    // Use window.location.origin to ensure correct redirect in production
+    const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+    signOut({ callbackUrl: `${baseUrl}/login` });
   };
 
   const userInitial = session?.user?.name?.[0]?.toUpperCase() || "U";
