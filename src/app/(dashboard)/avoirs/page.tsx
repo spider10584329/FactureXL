@@ -20,6 +20,7 @@ import { downloadInvoicePDF } from "@/lib/pdf-generator";
 import { TableSkeleton } from "@/components/ui/loading";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { useLanguage } from "@/lib/i18n";
+import { InvoiceModal } from "@/components/invoices/invoice-modal";
 import axios from "axios";
 
 export default function AvoirsPage() {
@@ -43,14 +44,6 @@ export default function AvoirsPage() {
     queryKey: ["users"],
     queryFn: async () => {
       const res = await fetch("/api/users");
-      return res.json();
-    },
-  });
-
-  const { data: groups = [] } = useQuery({
-    queryKey: ["groups"],
-    queryFn: async () => {
-      const res = await fetch("/api/groups");
       return res.json();
     },
   });
@@ -88,24 +81,6 @@ export default function AvoirsPage() {
       customToast.error(language === "en" ? "Error deleting" : "Erreur lors de la suppression");
     },
   });
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const data = {
-      ref: formData.get("ref"),
-      clientId: formData.get("clientId"),
-      groupId: formData.get("groupId"),
-      notes: formData.get("notes"),
-      type: "avoir",
-    };
-    createMutation.mutate(data);
-  };
-
-  const handleCloseModal = () => {
-    setShowForm(false);
-    setEditingAvoir(null);
-  };
 
   const handleDownloadPDF = async (avoirId: string) => {
     try {
@@ -150,80 +125,21 @@ export default function AvoirsPage() {
         </Button>
       </div>
 
-      {/* Form Modal */}
-      <Dialog open={showForm} onOpenChange={(open) => !open && handleCloseModal()}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>
-              {editingAvoir
-                ? (language === "en" ? "Edit Credit Note" : "Modifier l'avoir")
-                : (language === "en" ? "New Credit Note" : "Nouvel avoir")}
-            </DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="ref">{t("reference")} *</Label>
-                <Input id="ref" name="ref" defaultValue={editingAvoir?.ref} required className="form-field-angular" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="clientId">{t("client")} *</Label>
-                <select
-                  id="clientId"
-                  name="clientId"
-                  defaultValue={editingAvoir?.clientId}
-                  required
-                  className="form-field-angular w-full"
-                >
-                  <option value="">{language === "en" ? "Select a client" : "Sélectionner un client"}</option>
-                  {clients.map((client: any) => (
-                    <option key={client.id} value={client.id}>
-                      {client.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="groupId">{t("group")}</Label>
-                <select
-                  id="groupId"
-                  name="groupId"
-                  defaultValue={editingAvoir?.groupId}
-                  className="form-field-angular w-full"
-                >
-                  <option value="">{language === "en" ? "Select a group" : "Sélectionner un groupe"}</option>
-                  {groups.map((group: any) => (
-                    <option key={group.id} value={group.id}>
-                      {group.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="notes">{language === "en" ? "Notes" : "Notes"}</Label>
-                <textarea
-                  id="notes"
-                  name="notes"
-                  rows={3}
-                  defaultValue={editingAvoir?.notes}
-                  className="form-field-angular w-full"
-                />
-              </div>
-            </div>
-            <div className="flex gap-2 justify-end pt-4">
-              <Button type="button" variant="outline" onClick={handleCloseModal} className="btn-angular">
-                {t("cancel")}
-              </Button>
-              <Button type="submit" className="btn-angular bg-primary text-white hover:bg-primary/90">
-                {editingAvoir ? t("update") : t("create")}
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+      {/* Invoice Modal for creating/editing credit notes */}
+      <InvoiceModal
+        open={showForm}
+        onOpenChange={setShowForm}
+        type="avoir"
+        invoice={editingAvoir}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ["invoices"] });
+          setShowForm(false);
+          setEditingAvoir(null);
+        }}
+      />
 
       {/* View Modal */}
-      <Dialog open={!!viewingAvoir} onOpenChange={(open) => !open && setViewingAvoir(null)}>
+      <Dialog open={!!viewingAvoir} onOpenChange={(open: boolean) => !open && setViewingAvoir(null)}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader className="bg-gradient-to-r from-red-50 to-orange-50 -mx-6 -mt-6 px-6 py-4 border-b">
             <DialogTitle className="text-lg sm:text-xl font-semibold text-red-600 flex items-center gap-2 flex-wrap">
@@ -245,7 +161,7 @@ export default function AvoirsPage() {
                 </div>
                 <div>
                   <Label className="text-muted-foreground text-sm">{t("creationDate")}</Label>
-                  <p className="font-semibold">{formatDate(viewingAvoir.createdAt)}</p>
+                  <p className="font-semibold">{formatDate(viewingAvoir.createdAt, language === "en" ? "en-US" : "fr-FR")}</p>
                 </div>
               </div>
 
@@ -356,7 +272,6 @@ export default function AvoirsPage() {
                       <th className="px-2 sm:px-4">#</th>
                       <th className="px-2 sm:px-4">{t("reference")}</th>
                       <th className="px-2 sm:px-4 hidden sm:table-cell">{t("client")}</th>
-                      <th className="px-2 sm:px-4 hidden md:table-cell">{t("group")}</th>
                       <th className="px-2 sm:px-4 hidden lg:table-cell">{t("creationDate")}</th>
                       <th className="px-2 sm:px-4">{t("totalTTC")}</th>
                       <th className="px-2 sm:px-4">{t("actions")}</th>
@@ -373,8 +288,7 @@ export default function AvoirsPage() {
                           </div>
                         </td>
                         <td className="px-2 sm:px-4 hidden sm:table-cell">{avoir.client?.name || "-"}</td>
-                        <td className="px-2 sm:px-4 hidden md:table-cell">{avoir.group?.name || "-"}</td>
-                        <td className="px-2 sm:px-4 hidden lg:table-cell">{formatDate(avoir.createdAt)}</td>
+                        <td className="px-2 sm:px-4 hidden lg:table-cell">{formatDate(avoir.createdAt, language === "en" ? "en-US" : "fr-FR")}</td>
                         <td className="font-bold text-red-600 px-2 sm:px-4">
                           <div className="whitespace-nowrap">-{formatCurrency(avoir.total || 0)}</div>
                         </td>

@@ -24,7 +24,6 @@ model User {
   role          Role
   isActive      Boolean   @default(false)
   photo         String?
-  contract      String?
   address       String?
   city          String?
   zipCode       String?
@@ -42,6 +41,7 @@ model User {
 
   clientInvoices   Invoice[] @relation("ClientInvoices")
   employeeInvoices Invoice[] @relation("EmployeeInvoices")
+  contracts        Contract[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -67,48 +67,10 @@ model Company {
   iban        String?
 
   users    User[]
-  groups   Group[]
   invoices Invoice[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-}
-
-model Group {
-  id      String  @id @default(cuid())
-  name    String
-  account String?
-  color   String?
-
-  companyId String
-  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-
-  articles Article[]
-  items    InvoiceItem[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([companyId])
-}
-
-model Article {
-  id          String  @id @default(cuid())
-  title       String
-  price       Float
-  code        String?
-  internRef   String?
-  unite       String?
-  description String? @db.Text
-  tax         String?
-
-  groupId String
-  group   Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([groupId])
 }
 
 model Invoice {
@@ -116,6 +78,7 @@ model Invoice {
   ref                String
   startDate          DateTime?
   endDate            DateTime?
+  validUntil         DateTime? // Expiration date for quotes (devis)
   total              Float?
   totalHT            Float?
   wording            String?
@@ -123,6 +86,7 @@ model Invoice {
   commentary         String?   @db.Text
   subscription       Boolean   @default(false)
   subscriptionMonths String?   @db.Text // JSON array stored as string
+  frequency          String?   // 'monthly' | 'bimonthly' | 'quarterly' | 'yearly' | 'custom'
   month              Int?
   archived           Boolean   @default(false)
   paid               Boolean   @default(false)
@@ -165,14 +129,10 @@ model InvoiceItem {
   invoiceId String
   invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
 
-  groupId String?
-  group   Group?  @relation(fields: [groupId], references: [id])
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([invoiceId])
-  @@index([groupId])
 }
 
 model Tax {
@@ -194,4 +154,21 @@ model Transfer {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Contract {
+  id          String    @id @default(cuid())
+  name        String    // Original filename or display name
+  filename    String    // Stored filename on disk
+  url         String    // Public URL path to access the file
+  fileSize    Int?      // File size in bytes
+  mimeType    String    @default("application/pdf")
+  
+  clientId    String
+  client      User      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([clientId])
 }

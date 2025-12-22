@@ -14,13 +14,13 @@ const invoiceItemSchema = z.object({
   discount: z.number().optional(),
   unite: z.string().optional(),
   tax: z.number().optional(),
-  groupId: z.string().optional(),
 });
 
 const createInvoiceSchema = z.object({
   ref: z.string().optional(),
   startDate: z.string().optional(),
   endDate: z.string().optional(),
+  validUntil: z.string().optional(), // Expiration date for quotes
   wording: z.string().optional(),
   type: z.enum(["invoice", "avoir", "devis"]),
   commentary: z.string().optional(),
@@ -82,11 +82,7 @@ export async function GET(request: Request) {
             email: true,
           },
         },
-        items: {
-          include: {
-            group: true,
-          },
-        },
+        items: true,
       },
       orderBy: { createdAt: "desc" },
     });
@@ -123,6 +119,7 @@ export async function POST(request: Request) {
         ref: validatedData.ref || generateRef("INV"),
         startDate: validatedData.startDate ? new Date(validatedData.startDate) : null,
         endDate: validatedData.endDate ? new Date(validatedData.endDate) : null,
+        validUntil: validatedData.validUntil ? new Date(validatedData.validUntil) : null,
         wording: validatedData.wording,
         type: validatedData.type,
         commentary: validatedData.commentary,
@@ -146,18 +143,13 @@ export async function POST(request: Request) {
             discount: item.discount || 0,
             unite: item.unite,
             tax: item.tax || 0,
-            groupId: item.groupId,
           })),
         },
       },
       include: {
         client: true,
         employee: true,
-        items: {
-          include: {
-            group: true,
-          },
-        },
+        items: true,
       },
     });
 

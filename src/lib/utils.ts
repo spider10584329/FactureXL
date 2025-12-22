@@ -32,8 +32,8 @@ export function formatCurrency(amount: number): string {
   }).format(roundedAmount) + " CFP";
 }
 
-export function formatDate(date: Date | string): string {
-  return new Intl.DateTimeFormat("fr-FR", {
+export function formatDate(date: Date | string, locale: string = "fr-FR"): string {
+  return new Intl.DateTimeFormat(locale, {
     year: "numeric",
     month: "short",
     day: "numeric",

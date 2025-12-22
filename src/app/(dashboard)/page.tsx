@@ -45,10 +45,10 @@ export default function DashboardPage() {
   const currentMonth = new Date().toLocaleString(language === "en" ? "en-US" : "fr-FR", { month: "long" });
   const currentYear = new Date().getFullYear();
   const [startDate, setStartDate] = useState(
-    new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split("T")[0]
+    new Date(new Date().getFullYear(), 0, 1).toISOString().split("T")[0]
   );
   const [endDate, setEndDate] = useState(
-    new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString().split("T")[0]
+    new Date(new Date().getFullYear(), 11, 31).toISOString().split("T")[0]
   );
   const [invoicePage, setInvoicePage] = useState(1);
 
@@ -68,15 +68,7 @@ export default function DashboardPage() {
     },
   });
 
-  const { data: groups = [], isLoading: groupsLoading } = useQuery({
-    queryKey: ["groups"],
-    queryFn: async () => {
-      const res = await fetch("/api/groups");
-      return res.json();
-    },
-  });
-
-  const isLoading = invoicesLoading || usersLoading || groupsLoading;
+  const isLoading = invoicesLoading || usersLoading;
 
   // Calculate statistics (must be before any conditional returns to respect hooks rules)
   const totalRevenue = useMemo(() =>
@@ -123,47 +115,6 @@ export default function DashboardPage() {
     setInvoicePage(1);
   }, [currentMonthInvoices.length]);
 
-  // Calculate monthly data for groups
-  const groupMonthlyData = useMemo(() => {
-    const data: any = {};
-
-    groups.forEach((group: any) => {
-      data[group.id] = {
-        name: group.name,
-        months: new Array(12).fill(0)
-      };
-
-      MONTHS.forEach((_, monthIndex) => {
-        const monthInvoices = invoices.filter((inv: any) => {
-          const invDate = new Date(inv.createdAt);
-          return (
-            inv.type === "invoice" &&
-            inv.items?.some((item: any) => item.groupId === group.id) &&
-            invDate.getMonth() === monthIndex &&
-            invDate.getFullYear() === currentYear
-          );
-        });
-
-        // Calculate total for this group in this month
-        const total = monthInvoices.reduce((sum: number, inv: any) => {
-          const groupItems = inv.items?.filter((item: any) => item.groupId === group.id) || [];
-          const groupTotal = groupItems.reduce((itemSum: number, item: any) => {
-            const subtotal = item.quantity * item.price;
-            const discountAmount = subtotal * (item.discount / 100);
-            const afterDiscount = subtotal - discountAmount;
-            const taxAmount = afterDiscount * (item.tax / 100);
-            return itemSum + afterDiscount + taxAmount;
-          }, 0);
-          return sum + groupTotal;
-        }, 0);
-
-        data[group.id].months[monthIndex] = total;
-      });
-    });
-
-    return data;
-  }, [invoices, groups, currentYear]);
-
   // Calculate monthly data for employees
   const employeeMonthlyData = useMemo(() => {
     const employees = users.filter((u: any) => u.role === "EMPLOYEE" || u.role === "ADMIN" || u.role === "OWNER");
@@ -194,24 +145,6 @@ export default function DashboardPage() {
     return data;
   }, [invoices, users, currentYear]);
 
-  // Prepare chart data for Groupe/mois (stacked bar chart)
-  const chartData = useMemo(() => {
-    const monthlyData = MONTHS.map((month, index) => {
-      const dataPoint: any = { name: month };
-
-      // Calculate totals per group for this month
-      groups.forEach((group: any) => {
-        if (groupMonthlyData[group.id]) {
-          dataPoint[group.name] = groupMonthlyData[group.id].months[index];
-        }
-      });
-
-      return dataPoint;
-    });
-
-    return monthlyData;
-  }, [groupMonthlyData, groups]);
-
   // Excel export function
   const handleExportExcel = () => {
     try {
@@ -223,51 +156,60 @@ export default function DashboardPage() {
       });
 
       if (filteredInvoices.length === 0) {
-        customToast.warning("Aucune facture à exporter pour cette période");
+        customToast.warning(t("noInvoiceToExport"));
         return;
       }
 
+      // Column headers based on language
+      const headers = {
+        reference: language === "en" ? "Reference" : "Référence",
+        client: language === "en" ? "Client" : "Client",
+        creationDate: language === "en" ? "Creation date" : "Date de création",
+        paymentDate: language === "en" ? "Payment date" : "Date de paiement",
+        totalHT: language === "en" ? "Total excl. tax" : "Total HT",
+        totalTTC: language === "en" ? "Total incl. tax" : "Total TTC",
+        employee: language === "en" ? "Employee" : "Employé",
+      };
+
       // Prepare data for Excel
       const excelData = filteredInvoices.map((inv: any) => ({
-        "Référence": inv.ref,
-        "Client": inv.client?.name || "-",
-        "Date de création": formatDate(inv.createdAt),
-        "Date de paiement": inv.paymentDate ? formatDate(inv.paymentDate) : "-",
-        "Total HT": inv.totalHT || 0,
-        "Total TTC": inv.total || 0,
-        "Statut": inv.paid ? "Payée" : "En attente",
-        "Méthode de paiement": inv.lastPaymentMethod || "-",
-        "Employé": inv.employee?.name || "-",
+        [headers.reference]: inv.ref,
+        [headers.client]: inv.client?.name || "-",
+        [headers.creationDate]: formatDate(inv.createdAt, language === "en" ? "en-US" : "fr-FR"),
+        [headers.paymentDate]: inv.paymentDate ? formatDate(inv.paymentDate, language === "en" ? "en-US" : "fr-FR") : "-",
+        [headers.totalHT]: inv.totalHT || 0,
+        [headers.totalTTC]: inv.total || 0,
+        [headers.employee]: inv.employee?.name || "-",
       }));
 
       // Create worksheet and workbook
       const worksheet = XLSX.utils.json_to_sheet(excelData);
       const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Écritures comptables");
+      const sheetName = language === "en" ? "Accounting Entries" : "Écritures comptables";
+      XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
 
       // Set column widths
       const wscols = [
-        { wch: 15 }, // Référence
+        { wch: 15 }, // Reference
         { wch: 25 }, // Client
-        { wch: 15 }, // Date de création
-        { wch: 15 }, // Date de paiement
+        { wch: 15 }, // Creation date
+        { wch: 15 }, // Payment date
         { wch: 12 }, // Total HT
         { wch: 12 }, // Total TTC
-        { wch: 12 }, // Statut
-        { wch: 20 }, // Méthode de paiement
-        { wch: 20 }, // Employé
+        { wch: 20 }, // Employee
       ];
       worksheet['!cols'] = wscols;
 
       // Generate filename with date range
-      const filename = `ecritures_comptables_${startDate}_${endDate}.xlsx`;
+      const filenamePrefix = language === "en" ? "accounting_entries" : "ecritures_comptables";
+      const filename = `${filenamePrefix}_${startDate}_${endDate}.xlsx`;
 
       // Download file
       XLSX.writeFile(workbook, filename);
-      customToast.success("Export Excel réussi");
+      customToast.success(t("excelExportSuccess"));
     } catch (error) {
       console.error("Error exporting to Excel:", error);
-      customToast.error("Erreur lors de l'export Excel");
+      customToast.error(t("errorExcelExport"));
     }
   };
 
@@ -358,7 +300,7 @@ export default function DashboardPage() {
                         <td className="py-2 px-2 font-medium">{invoiceStartIndex + index + 1}</td>
                         <td className="py-2 px-2 truncate max-w-[150px]" title={invoice.client?.name || "-"}>{invoice.client?.name || "-"}</td>
                         <td className="py-2 px-2 font-semibold text-primary whitespace-nowrap">{invoice.ref}</td>
-                        <td className="py-2 px-2 hidden sm:table-cell whitespace-nowrap">{formatDate(invoice.createdAt)}</td>
+                        <td className="py-2 px-2 hidden sm:table-cell whitespace-nowrap">{formatDate(invoice.createdAt, language === "en" ? "en-US" : "fr-FR")}</td>
                         <td className="py-2 px-2 text-right font-bold whitespace-nowrap">{roundToCFP(invoice.total || 0).toLocaleString('fr-FR')} CFP</td>
                       </tr>
                     ))
@@ -422,56 +364,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Statistics Tables */}
-      <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2">
-        {/* Groupe Statistiques */}
-        <Card className="card-angular">
-          <CardHeader className="border-b">
-            <CardTitle className="text-lg font-semibold text-primary">{t("groupStats")}</CardTitle>
-          </CardHeader>
-          <CardContent className="p-3 sm:p-6">
-            <div className="overflow-x-auto">
-              <div className="inline-block min-w-full align-middle">
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr>
-                      <th className="sticky left-0 z-10 bg-white dark:bg-gray-800 py-2 px-2 text-left font-semibold text-muted-foreground border-r border-gray-200 dark:border-gray-700 min-w-[80px] sm:min-w-[120px]">
-                        {language === "en" ? "Group" : "Groupe"}
-                      </th>
-                      {MONTHS.map((month) => (
-                        <th key={month} className="py-2 px-1 text-center font-semibold text-muted-foreground whitespace-nowrap min-w-[40px] sm:min-w-[50px]">
-                          {month}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {groups.length === 0 ? (
-                      <tr>
-                        <td colSpan={13} className="text-center py-8 text-muted-foreground">
-                          {t("noGroup")}
-                        </td>
-                      </tr>
-                    ) : (
-                      groups.map((group: any) => (
-                        <tr key={group.id} className="border-b border-dashed hover:bg-muted/20">
-                          <td className="sticky left-0 z-10 bg-white dark:bg-gray-800 py-2 px-2 font-medium text-primary border-r border-gray-200 dark:border-gray-700 truncate max-w-[80px] sm:max-w-none" title={group.name}>
-                            {group.name}
-                          </td>
-                          {groupMonthlyData[group.id]?.months.map((value: number, index: number) => (
-                            <td key={index} className="py-2 px-1 text-center font-medium whitespace-nowrap">
-                              {value > 0 ? value.toFixed(0) : "-"}
-                            </td>
-                          ))}
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
+      <div className="grid gap-4 sm:gap-6 grid-cols-1">
         {/* Employe Statistiques */}
         <Card className="card-angular">
           <CardHeader className="border-b">
@@ -521,134 +414,6 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Groupe/mois Chart - Line Chart with Circle Points */}
-      <Card className="card-angular overflow-hidden">
-        <CardHeader className="border-b">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
-              <CardTitle className="text-lg font-semibold text-primary">{t("groupPerMonth")}</CardTitle>
-              <p className="text-sm text-muted-foreground mt-1">{currentYear}</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="px-3 py-1.5 bg-primary/10 text-primary text-xs font-medium rounded-full">
-                {t("graphByGroups")}
-              </span>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="p-3 sm:p-6">
-          <div className="h-64 sm:h-80 md:h-96 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={chartData}
-                margin={{ 
-                  top: 20, 
-                  right: 10, 
-                  left: -10, 
-                  bottom: 20 
-                }}
-              >
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  stroke="#e5e7eb"
-                  vertical={true}
-                />
-                <XAxis
-                  dataKey="name"
-                  tick={{ fontSize: 11, fill: "#6b7280", fontWeight: 500 }}
-                  tickLine={false}
-                  axisLine={{ stroke: "#e5e7eb" }}
-                  dy={10}
-                  interval="preserveStartEnd"
-                />
-                <YAxis
-                  tick={{ fontSize: 10, fill: "#9ca3af" }}
-                  tickLine={false}
-                  axisLine={{ stroke: "#e5e7eb" }}
-                  tickFormatter={(value) => {
-                    if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
-                    if (value >= 1000) return `${(value / 1000).toFixed(0)}K`;
-                    return value.toString();
-                  }}
-                  width={50}
-                />
-                <Tooltip
-                  content={({ active, payload, label }) => {
-                    if (active && payload && payload.length) {
-                      const total = payload.reduce((sum: number, entry: any) => sum + (entry.value || 0), 0);
-                      return (
-                        <div className="bg-white p-3 sm:p-4 rounded-lg shadow-lg border border-gray-200 max-w-xs">
-                          <p className="font-semibold text-gray-900 mb-2 text-xs sm:text-sm">{label} {currentYear}</p>
-                          <div className="space-y-1 sm:space-y-1.5 max-h-48 overflow-y-auto">
-                            {payload.map((entry: any, index: number) => (
-                              <div key={index} className="flex items-center justify-between gap-3 sm:gap-6 text-xs sm:text-sm">
-                                <div className="flex items-center gap-2 min-w-0">
-                                  <div
-                                    className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full flex-shrink-0"
-                                    style={{ backgroundColor: entry.color }}
-                                  />
-                                  <span className="text-gray-600 truncate">{entry.name}</span>
-                                </div>
-                                <span className="font-medium text-gray-900 whitespace-nowrap text-xs sm:text-sm">
-                                  {roundToCFP(entry.value || 0).toLocaleString('fr-FR')} CFP
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                          <div className="mt-2 sm:mt-3 pt-2 border-t border-gray-200 flex justify-between">
-                            <span className="text-xs sm:text-sm font-medium text-gray-500">Total</span>
-                            <span className="text-xs sm:text-sm font-bold text-primary whitespace-nowrap">
-                              {roundToCFP(total).toLocaleString('fr-FR')} CFP
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
-                />
-                <Legend
-                  wrapperStyle={{ paddingTop: 20 }}
-                  content={({ payload }) => (
-                    <div className="flex flex-wrap justify-center gap-3 sm:gap-6 mt-4 px-2">
-                      {payload?.map((entry: any, index: number) => (
-                        <div key={index} className="flex items-center gap-2">
-                          <div
-                            className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full flex-shrink-0"
-                            style={{ backgroundColor: entry.color }}
-                          />
-                          <span className="text-xs sm:text-sm text-gray-600 truncate max-w-[120px] sm:max-w-none">{entry.value}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                />
-                {groups.map((group: any, index: number) => (
-                  <Line
-                    key={group.id}
-                    type="linear"
-                    dataKey={group.name}
-                    stroke={COLORS[index % COLORS.length]}
-                    strokeWidth={2}
-                    dot={{
-                      r: 4,
-                      fill: COLORS[index % COLORS.length],
-                      strokeWidth: 0,
-                    }}
-                    activeDot={{
-                      r: 6,
-                      fill: COLORS[index % COLORS.length],
-                      strokeWidth: 2,
-                      stroke: "#fff",
-                    }}
-                  />
-                ))}
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

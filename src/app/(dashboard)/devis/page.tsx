@@ -13,13 +13,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Plus, Search, Trash2, Eye, FileDown, ArrowRight, X } from "lucide-react";
+import { Plus, Search, Trash2, Eye, FileDown, ArrowRight, X, CalendarClock, CalendarDays } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { toast as customToast } from "@/lib/toast";
 import { downloadInvoicePDF } from "@/lib/pdf-generator";
 import { TableSkeleton } from "@/components/ui/loading";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { useLanguage } from "@/lib/i18n";
+import { InvoiceModal } from "@/components/invoices/invoice-modal";
 import axios from "axios";
 
 export default function DevisPage() {
@@ -28,6 +29,12 @@ export default function DevisPage() {
   const [showForm, setShowForm] = useState(false);
   const [editingDevis, setEditingDevis] = useState<any>(null);
   const [viewingDevis, setViewingDevis] = useState<any>(null);
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+  const [subscriptionDevis, setSubscriptionDevis] = useState<any>(null);
+  const [subscriptionStartDate, setSubscriptionStartDate] = useState(new Date().toISOString().split("T")[0]);
+  const [subscriptionEndDate, setSubscriptionEndDate] = useState("");
+  const [renewalFrequency, setRenewalFrequency] = useState<"monthly" | "bimonthly" | "quarterly" | "semiannual" | "yearly" | "custom">("monthly");
+  const [customRenewalMonth, setCustomRenewalMonth] = useState(12); // December by default for yearly/custom
   const queryClient = useQueryClient();
   const confirm = useConfirm();
 
@@ -43,14 +50,6 @@ export default function DevisPage() {
     queryKey: ["users"],
     queryFn: async () => {
       const res = await fetch("/api/users");
-      return res.json();
-    },
-  });
-
-  const { data: groups = [] } = useQuery({
-    queryKey: ["groups"],
-    queryFn: async () => {
-      const res = await fetch("/api/groups");
       return res.json();
     },
   });
@@ -94,6 +93,84 @@ export default function DevisPage() {
     },
   });
 
+  const convertToSubscriptionMutation = useMutation({
+    mutationFn: async ({ 
+      id, 
+      startDate, 
+      endDate,
+      frequency,
+      customMonth
+    }: { 
+      id: string; 
+      startDate: string; 
+      endDate: string;
+      frequency: "monthly" | "bimonthly" | "quarterly" | "semiannual" | "yearly" | "custom";
+      customMonth?: number;
+    }) => {
+      // Calculate renewal dates based on frequency
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      const renewalDates: string[] = [];
+      
+      let currentDate = new Date(start);
+      
+      while (currentDate <= end) {
+        if (frequency === "monthly") {
+          // Every month
+          renewalDates.push(currentDate.toISOString().split("T")[0]);
+          currentDate.setMonth(currentDate.getMonth() + 1);
+        } else if (frequency === "bimonthly") {
+          // Every 2 months
+          renewalDates.push(currentDate.toISOString().split("T")[0]);
+          currentDate.setMonth(currentDate.getMonth() + 2);
+        } else if (frequency === "quarterly") {
+          // Every 3 months (trimester)
+          renewalDates.push(currentDate.toISOString().split("T")[0]);
+          currentDate.setMonth(currentDate.getMonth() + 3);
+        } else if (frequency === "semiannual") {
+          // Every 6 months (semiannual)
+          renewalDates.push(currentDate.toISOString().split("T")[0]);
+          currentDate.setMonth(currentDate.getMonth() + 6);
+        } else if (frequency === "yearly" || frequency === "custom") {
+          // Only in specific month (default December)
+          const targetMonth = customMonth ? customMonth - 1 : 11; // 0-indexed, December = 11
+          if (currentDate.getMonth() === targetMonth) {
+            renewalDates.push(currentDate.toISOString().split("T")[0]);
+          }
+          currentDate.setMonth(currentDate.getMonth() + 1);
+        }
+      }
+
+      const res = await fetch(`/api/invoices/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "subscription",
+          subscription: true,
+          startDate: startDate,
+          endDate: endDate,
+          frequency: frequency,
+          month: (frequency === "custom" || frequency === "yearly") ? customMonth : null, // Store the custom month
+          subscriptionMonths: renewalDates, // Store renewal dates for tracking
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to convert");
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      customToast.success(language === "en" ? "Quote converted to subscription" : "Devis converti en abonnement");
+      setShowSubscriptionModal(false);
+      setSubscriptionDevis(null);
+      setSubscriptionEndDate("");
+      setRenewalFrequency("monthly");
+      setCustomRenewalMonth(12);
+    },
+    onError: () => {
+      customToast.error(language === "en" ? "Error converting" : "Erreur lors de la conversion");
+    },
+  });
+
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       const res = await fetch(`/api/invoices/${id}`, { method: "DELETE" });
@@ -107,25 +184,6 @@ export default function DevisPage() {
       customToast.error(language === "en" ? "Error deleting" : "Erreur lors de la suppression");
     },
   });
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const data = {
-      ref: formData.get("ref"),
-      clientId: formData.get("clientId"),
-      groupId: formData.get("groupId"),
-      notes: formData.get("notes"),
-      validUntil: formData.get("validUntil"),
-      type: "devis",
-    };
-    createMutation.mutate(data);
-  };
-
-  const handleCloseModal = () => {
-    setShowForm(false);
-    setEditingDevis(null);
-  };
 
   const handleDownloadPDF = async (devisId: string) => {
     try {
@@ -152,11 +210,20 @@ export default function DevisPage() {
 
   const clients = users.filter((u: any) => u.role === "CLIENT");
   const devisList = invoices.filter((inv: any) => inv.type === "devis");
-  const filteredDevis = devisList.filter(
-    (inv: any) =>
-      inv.ref?.toLowerCase().includes(search.toLowerCase()) ||
-      inv.client?.name?.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredDevis = devisList
+    .filter(
+      (inv: any) =>
+        inv.ref?.toLowerCase().includes(search.toLowerCase()) ||
+        inv.client?.name?.toLowerCase().includes(search.toLowerCase())
+    )
+    .sort((a: any, b: any) => {
+      // Sort by validUntil date (ascending - earliest expiration first)
+      // Quotes without validUntil go to the end
+      if (!a.validUntil && !b.validUntil) return 0;
+      if (!a.validUntil) return 1;
+      if (!b.validUntil) return -1;
+      return new Date(a.validUntil).getTime() - new Date(b.validUntil).getTime();
+    });
 
   // Check if quote is expired
   const isExpired = (validUntil: string | null) => {
@@ -176,92 +243,23 @@ export default function DevisPage() {
         </Button>
       </div>
 
-      {/* Form Modal */}
-      <Dialog open={showForm} onOpenChange={(open) => !open && handleCloseModal()}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>
-              {editingDevis
-                ? (language === "en" ? "Edit Quote" : "Modifier le devis")
-                : (language === "en" ? "New Quote" : "Nouveau devis")}
-            </DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="ref">{t("reference")} *</Label>
-                <Input id="ref" name="ref" defaultValue={editingDevis?.ref} required className="form-field-angular" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="clientId">{t("client")} *</Label>
-                <select
-                  id="clientId"
-                  name="clientId"
-                  defaultValue={editingDevis?.clientId}
-                  required
-                  className="form-field-angular w-full"
-                >
-                  <option value="">{language === "en" ? "Select a client" : "Sélectionner un client"}</option>
-                  {clients.map((client: any) => (
-                    <option key={client.id} value={client.id}>
-                      {client.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="groupId">{t("group")}</Label>
-                <select
-                  id="groupId"
-                  name="groupId"
-                  defaultValue={editingDevis?.groupId}
-                  className="form-field-angular w-full"
-                >
-                  <option value="">{language === "en" ? "Select a group" : "Sélectionner un groupe"}</option>
-                  {groups.map((group: any) => (
-                    <option key={group.id} value={group.id}>
-                      {group.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="validUntil">{language === "en" ? "Valid until" : "Valide jusqu'au"}</Label>
-                <Input
-                  id="validUntil"
-                  name="validUntil"
-                  type="date"
-                  defaultValue={editingDevis?.validUntil?.split("T")[0]}
-                  className="form-field-angular"
-                />
-              </div>
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="notes">{language === "en" ? "Notes" : "Notes"}</Label>
-                <textarea
-                  id="notes"
-                  name="notes"
-                  rows={3}
-                  defaultValue={editingDevis?.notes}
-                  className="form-field-angular w-full"
-                />
-              </div>
-            </div>
-            <div className="flex gap-2 justify-end pt-4">
-              <Button type="button" variant="outline" onClick={handleCloseModal} className="btn-angular">
-                {t("cancel")}
-              </Button>
-              <Button type="submit" className="btn-angular bg-primary text-white hover:bg-primary/90">
-                {editingDevis ? t("update") : t("create")}
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+      {/* Invoice Modal for creating/editing quotes */}
+      <InvoiceModal
+        open={showForm}
+        onOpenChange={setShowForm}
+        type="devis"
+        invoice={editingDevis}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ["invoices"] });
+          setShowForm(false);
+          setEditingDevis(null);
+        }}
+      />
 
       {/* View Modal */}
-      <Dialog open={!!viewingDevis} onOpenChange={(open) => !open && setViewingDevis(null)}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 -mx-6 -mt-6 px-6 py-4 border-b">
+      <Dialog open={!!viewingDevis} onOpenChange={(open: boolean) => !open && setViewingDevis(null)}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 -mx-6 -mt-6 px-6 py-4 border-b">
             <DialogTitle className="text-lg sm:text-xl font-semibold text-primary flex items-center gap-2 flex-wrap">
               <Eye className="h-5 w-5 flex-shrink-0" />
               <span className="break-all">
@@ -281,12 +279,12 @@ export default function DevisPage() {
                 </div>
                 <div>
                   <Label className="text-muted-foreground text-sm">{t("creationDate")}</Label>
-                  <p className="font-semibold">{formatDate(viewingDevis.createdAt)}</p>
+                  <p className="font-semibold">{formatDate(viewingDevis.createdAt, language === "en" ? "en-US" : "fr-FR")}</p>
                 </div>
                 <div>
                   <Label className="text-muted-foreground text-sm">{language === "en" ? "Valid until" : "Valide jusqu'au"}</Label>
                   <div className="flex items-center gap-2">
-                    <p className="font-semibold">{viewingDevis.validUntil ? formatDate(viewingDevis.validUntil) : "-"}</p>
+                    <p className="font-semibold">{viewingDevis.validUntil ? formatDate(viewingDevis.validUntil, language === "en" ? "en-US" : "fr-FR") : "-"}</p>
                     {viewingDevis.validUntil && isExpired(viewingDevis.validUntil) && (
                       <Badge variant="danger" className="text-xs">
                         {language === "en" ? "Expired" : "Expiré"}
@@ -352,18 +350,18 @@ export default function DevisPage() {
               )}
 
               {/* Actions */}
-              <div className="flex flex-col sm:flex-row justify-end gap-2 pt-4 border-t">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-4 border-t">
                 <Button
                   variant="outline"
                   onClick={() => setViewingDevis(null)}
-                  className="btn-angular w-full sm:w-auto"
+                  className="btn-angular"
                 >
                   <X className="h-4 w-4 mr-2" />
                   {t("close")}
                 </Button>
                 <Button
                   onClick={() => handleDownloadPDF(viewingDevis.id)}
-                  className="btn-angular bg-primary text-white hover:bg-primary/90 w-full sm:w-auto"
+                  className="btn-angular bg-primary text-white hover:bg-primary/90"
                 >
                   <FileDown className="h-4 w-4 mr-2" />
                   {t("downloadPDF")}
@@ -382,10 +380,21 @@ export default function DevisPage() {
                       setViewingDevis(null);
                     }
                   }}
-                  className="btn-angular bg-green-600 text-white hover:bg-green-700 w-full sm:w-auto"
+                  className="btn-angular bg-green-600 text-white hover:bg-green-700"
                 >
                   <ArrowRight className="h-4 w-4 mr-2" />
-                  {t("convertToInvoice")}
+                  <span className="truncate">{t("convertToInvoice")}</span>
+                </Button>
+                <Button
+                  onClick={() => {
+                    setSubscriptionDevis(viewingDevis);
+                    setShowSubscriptionModal(true);
+                    setViewingDevis(null);
+                  }}
+                  className="btn-angular bg-blue-600 text-white hover:bg-blue-700"
+                >
+                  <CalendarDays className="h-4 w-4 mr-2" />
+                  <span className="truncate">{language === "en" ? "Subscription" : "Abonnement"}</span>
                 </Button>
               </div>
             </div>
@@ -422,7 +431,6 @@ export default function DevisPage() {
                       <th className="px-2 sm:px-4">#</th>
                       <th className="px-2 sm:px-4">{t("reference")}</th>
                       <th className="px-2 sm:px-4 hidden sm:table-cell">{t("client")}</th>
-                      <th className="px-2 sm:px-4 hidden md:table-cell">{t("group")}</th>
                       <th className="px-2 sm:px-4 hidden lg:table-cell">{t("creationDate")}</th>
                       <th className="px-2 sm:px-4 hidden xl:table-cell">{language === "en" ? "Valid until" : "Valide jusqu'au"}</th>
                       <th className="px-2 sm:px-4">{t("totalTTC")}</th>
@@ -440,11 +448,10 @@ export default function DevisPage() {
                           </div>
                         </td>
                         <td className="px-2 sm:px-4 hidden sm:table-cell">{devis.client?.name || "-"}</td>
-                        <td className="px-2 sm:px-4 hidden md:table-cell">{devis.group?.name || "-"}</td>
-                        <td className="px-2 sm:px-4 hidden lg:table-cell">{formatDate(devis.createdAt)}</td>
+                        <td className="px-2 sm:px-4 hidden lg:table-cell">{formatDate(devis.createdAt, language === "en" ? "en-US" : "fr-FR")}</td>
                         <td className="px-2 sm:px-4 hidden xl:table-cell">
                           <div className="flex items-center gap-2">
-                            {devis.validUntil ? formatDate(devis.validUntil) : "-"}
+                            {devis.validUntil ? formatDate(devis.validUntil, language === "en" ? "en-US" : "fr-FR") : "-"}
                             {devis.validUntil && isExpired(devis.validUntil) && (
                               <Badge variant="danger" className="text-xs">
                                 {language === "en" ? "Expired" : "Expiré"}
@@ -498,6 +505,18 @@ export default function DevisPage() {
                             <Button
                               variant="ghost"
                               size="sm"
+                              title={language === "en" ? "Convert to Subscription" : "Convertir en abonnement"}
+                              className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 h-8 w-8 p-0 hidden md:inline-flex"
+                              onClick={() => {
+                                setSubscriptionDevis(devis);
+                                setShowSubscriptionModal(true);
+                              }}
+                            >
+                              <CalendarDays className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
                               title={t("delete")}
                               className="text-destructive hover:text-destructive hover:bg-destructive/10 h-8 w-8 p-0"
                               onClick={async () => {
@@ -525,6 +544,155 @@ export default function DevisPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Subscription Conversion Modal */}
+      <Dialog open={showSubscriptionModal} onOpenChange={(open) => {
+        if (!open) {
+          setShowSubscriptionModal(false);
+          setSubscriptionDevis(null);
+          setSubscriptionEndDate("");
+          setRenewalFrequency("monthly");
+          setCustomRenewalMonth(12);
+        }
+      }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {language === "en" ? "Convert to Subscription" : "Convertir en abonnement"}
+            </DialogTitle>
+          </DialogHeader>
+          {subscriptionDevis && (
+            <div className="space-y-4">
+              <div className="bg-muted/30 p-3 rounded border">
+                <p className="font-semibold text-primary">{subscriptionDevis.ref}</p>
+                <p className="text-sm text-muted-foreground">{subscriptionDevis.client?.name}</p>
+                <p className="text-lg font-bold mt-1">{formatCurrency(subscriptionDevis.total || 0)}</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>{language === "en" ? "Start Date" : "Date de début"}</Label>
+                  <Input
+                    type="date"
+                    value={subscriptionStartDate}
+                    onChange={(e) => setSubscriptionStartDate(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>{language === "en" ? "End Date" : "Date de fin"}</Label>
+                  <Input
+                    type="date"
+                    value={subscriptionEndDate}
+                    onChange={(e) => setSubscriptionEndDate(e.target.value)}
+                    min={subscriptionStartDate}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>{language === "en" ? "Renewal Frequency" : "Fréquence de renouvellement"}</Label>
+                <select
+                  value={renewalFrequency}
+                  onChange={(e) => setRenewalFrequency(e.target.value as any)}
+                  className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-md bg-background"
+                >
+                  <option value="monthly">{language === "en" ? "Monthly (every month)" : "Mensuel (chaque mois)"}</option>
+                  <option value="bimonthly">{language === "en" ? "Bimonthly (every 2 months)" : "Bimestriel (tous les 2 mois)"}</option>
+                  <option value="quarterly">{language === "en" ? "Quarterly (every 3 months)" : "Trimestriel (tous les 3 mois)"}</option>
+                  <option value="semiannual">{language === "en" ? "Semiannual (every 6 months)" : "Semestriel (tous les 6 mois)"}</option>
+                  <option value="yearly">{language === "en" ? "Yearly (once per year)" : "Annuel (une fois par an)"}</option>
+                  <option value="custom">{language === "en" ? "Custom (specific month only)" : "Personnalisé (mois spécifique)"}</option>
+                </select>
+              </div>
+
+              {(renewalFrequency === "yearly" || renewalFrequency === "custom") && (
+                <div className="space-y-2">
+                  <Label>{language === "en" ? "Renewal Month" : "Mois de renouvellement"}</Label>
+                  <select
+                    value={customRenewalMonth}
+                    onChange={(e) => setCustomRenewalMonth(parseInt(e.target.value))}
+                    className="w-full px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-md bg-background"
+                  >
+                    <option value={1}>{language === "en" ? "January" : "Janvier"}</option>
+                    <option value={2}>{language === "en" ? "February" : "Février"}</option>
+                    <option value={3}>{language === "en" ? "March" : "Mars"}</option>
+                    <option value={4}>{language === "en" ? "April" : "Avril"}</option>
+                    <option value={5}>{language === "en" ? "May" : "Mai"}</option>
+                    <option value={6}>{language === "en" ? "June" : "Juin"}</option>
+                    <option value={7}>{language === "en" ? "July" : "Juillet"}</option>
+                    <option value={8}>{language === "en" ? "August" : "Août"}</option>
+                    <option value={9}>{language === "en" ? "September" : "Septembre"}</option>
+                    <option value={10}>{language === "en" ? "October" : "Octobre"}</option>
+                    <option value={11}>{language === "en" ? "November" : "Novembre"}</option>
+                    <option value={12}>{language === "en" ? "December" : "Décembre"}</option>
+                  </select>
+                </div>
+              )}
+
+              {subscriptionEndDate && (
+                <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded border border-blue-200 dark:border-blue-800">
+                  <p className="text-sm text-blue-700 dark:text-blue-300">
+                    <span className="font-semibold">
+                      {language === "en" ? "Subscription Summary:" : "Résumé de l'abonnement:"}
+                    </span>
+                    <br />
+                    <span className="block mt-1">
+                      {language === "en" ? "Period:" : "Période:"} {formatDate(subscriptionStartDate, language === "en" ? "en-US" : "fr-FR")} → {formatDate(subscriptionEndDate, language === "en" ? "en-US" : "fr-FR")}
+                    </span>
+                    <span className="block">
+                      {language === "en" ? "Renewal:" : "Renouvellement:"} {
+                        renewalFrequency === "monthly" ? (language === "en" ? "Every month" : "Chaque mois") :
+                        renewalFrequency === "bimonthly" ? (language === "en" ? "Every 2 months" : "Tous les 2 mois") :
+                        renewalFrequency === "quarterly" ? (language === "en" ? "Every 3 months" : "Tous les 3 mois") :
+                        (language === "en" ? `Only in ${["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"][customRenewalMonth - 1]}` : `Uniquement en ${["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"][customRenewalMonth - 1]}`)
+                      }
+                    </span>
+                  </p>
+                </div>
+              )}
+
+              <div className="flex justify-end gap-2 pt-4 border-t">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowSubscriptionModal(false);
+                    setSubscriptionDevis(null);
+                    setSubscriptionEndDate("");
+                    setRenewalFrequency("monthly");
+                    setCustomRenewalMonth(12);
+                  }}
+                >
+                  {t("cancel")}
+                </Button>
+                <Button
+                  className="bg-blue-600 text-white hover:bg-blue-700"
+                  onClick={() => {
+                    if (!subscriptionEndDate) {
+                      customToast.error(language === "en" ? "Please select an end date" : "Veuillez sélectionner une date de fin");
+                      return;
+                    }
+                    convertToSubscriptionMutation.mutate({
+                      id: subscriptionDevis.id,
+                      startDate: subscriptionStartDate,
+                      endDate: subscriptionEndDate,
+                      frequency: renewalFrequency,
+                      customMonth: customRenewalMonth,
+                    });
+                  }}
+                  disabled={convertToSubscriptionMutation.isPending || !subscriptionEndDate}
+                >
+                  {convertToSubscriptionMutation.isPending ? (
+                    language === "en" ? "Converting..." : "Conversion..."
+                  ) : (
+                    language === "en" ? "Convert" : "Convertir"
+                  )}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

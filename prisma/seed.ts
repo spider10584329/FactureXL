@@ -20,8 +20,7 @@ async function main() {
   console.log("🗑️  Clearing existing data...");
   await prisma.invoiceItem.deleteMany();
   await prisma.invoice.deleteMany();
-  await prisma.article.deleteMany();
-  await prisma.group.deleteMany();
+  await prisma.contract.deleteMany();
   await prisma.tax.deleteMany();
   await prisma.transfer.deleteMany();
   await prisma.user.deleteMany();
@@ -62,77 +61,30 @@ async function main() {
   console.log(`   ✅ Created ${taxes.length} taxes`);
 
   // =====================================================
-  // 3. CREATE GROUPS (Product/Service Categories)
+  // 3. SAMPLE PRODUCTS (for invoice generation)
   // =====================================================
-  console.log("\n📁 Creating groups...");
-  const groupsData = [
-    { name: "Informatique", color: "#199ef7", account: "706100" },
-    { name: "Conseil", color: "#38761d", account: "706200" },
-    { name: "Formation", color: "#f20c1f", account: "706300" },
-    { name: "Maintenance", color: "#ea7005", account: "706400" },
-    { name: "Design", color: "#8884d8", account: "706500" },
+  const sampleProducts = [
+    { title: "Developpement Web", price: 12000, unite: "jour", tax: 11 },
+    { title: "Developpement Mobile", price: 15000, unite: "jour", tax: 11 },
+    { title: "Integration API", price: 8000, unite: "jour", tax: 11 },
+    { title: "Audit Securite", price: 25000, unite: "forfait", tax: 11 },
+    { title: "Consultation Strategie", price: 18000, unite: "jour", tax: 11 },
+    { title: "Analyse de Marche", price: 35000, unite: "forfait", tax: 11 },
+    { title: "Accompagnement Projet", price: 10000, unite: "jour", tax: 11 },
+    { title: "Formation Excel", price: 45000, unite: "session", tax: 6 },
+    { title: "Formation Word", price: 35000, unite: "session", tax: 6 },
+    { title: "Formation PowerPoint", price: 30000, unite: "session", tax: 6 },
+    { title: "Formation Management", price: 120000, unite: "session", tax: 6 },
+    { title: "Maintenance Mensuelle", price: 25000, unite: "mois", tax: 11 },
+    { title: "Support Technique", price: 5000, unite: "heure", tax: 11 },
+    { title: "Mise a jour Systeme", price: 15000, unite: "intervention", tax: 11 },
+    { title: "Creation Logo", price: 80000, unite: "forfait", tax: 11 },
+    { title: "Charte Graphique", price: 150000, unite: "forfait", tax: 11 },
+    { title: "Design UI/UX", price: 20000, unite: "jour", tax: 11 },
   ];
 
-  const groups = await Promise.all(
-    groupsData.map((g) =>
-      prisma.group.create({
-        data: {
-          name: g.name,
-          color: g.color,
-          account: g.account,
-          companyId: company.id,
-        },
-      })
-    )
-  );
-  console.log(`   ✅ Created ${groups.length} groups`);
-
   // =====================================================
-  // 4. CREATE ARTICLES (Products/Services)
-  // =====================================================
-  console.log("\n📝 Creating articles...");
-  const articlesData = [
-    // Informatique
-    { title: "Developpement Web", price: 12000, unite: "jour", tax: "11", groupIndex: 0 },
-    { title: "Developpement Mobile", price: 15000, unite: "jour", tax: "11", groupIndex: 0 },
-    { title: "Integration API", price: 8000, unite: "jour", tax: "11", groupIndex: 0 },
-    { title: "Audit Securite", price: 25000, unite: "forfait", tax: "11", groupIndex: 0 },
-    // Conseil
-    { title: "Consultation Strategie", price: 18000, unite: "jour", tax: "11", groupIndex: 1 },
-    { title: "Analyse de Marche", price: 35000, unite: "forfait", tax: "11", groupIndex: 1 },
-    { title: "Accompagnement Projet", price: 10000, unite: "jour", tax: "11", groupIndex: 1 },
-    // Formation
-    { title: "Formation Excel", price: 45000, unite: "session", tax: "6", groupIndex: 2 },
-    { title: "Formation Word", price: 35000, unite: "session", tax: "6", groupIndex: 2 },
-    { title: "Formation PowerPoint", price: 30000, unite: "session", tax: "6", groupIndex: 2 },
-    { title: "Formation Management", price: 120000, unite: "session", tax: "6", groupIndex: 2 },
-    // Maintenance
-    { title: "Maintenance Mensuelle", price: 25000, unite: "mois", tax: "11", groupIndex: 3 },
-    { title: "Support Technique", price: 5000, unite: "heure", tax: "11", groupIndex: 3 },
-    { title: "Mise a jour Systeme", price: 15000, unite: "intervention", tax: "11", groupIndex: 3 },
-    // Design
-    { title: "Creation Logo", price: 80000, unite: "forfait", tax: "11", groupIndex: 4 },
-    { title: "Charte Graphique", price: 150000, unite: "forfait", tax: "11", groupIndex: 4 },
-    { title: "Design UI/UX", price: 20000, unite: "jour", tax: "11", groupIndex: 4 },
-  ];
-
-  const articles = await Promise.all(
-    articlesData.map((a) =>
-      prisma.article.create({
-        data: {
-          title: a.title,
-          price: a.price,
-          unite: a.unite,
-          tax: a.tax,
-          groupId: groups[a.groupIndex].id,
-        },
-      })
-    )
-  );
-  console.log(`   ✅ Created ${articles.length} articles`);
-
-  // =====================================================
-  // 5. CREATE USERS
+  // 4. CREATE USERS
   // =====================================================
   console.log("\n👥 Creating users...");
   const hashedPassword = await bcrypt.hash("password123", 10);
@@ -283,13 +235,12 @@ async function main() {
       let totalTTC = 0;
 
       for (let j = 0; j < numItems; j++) {
-        const article = articles[Math.floor(Math.random() * articles.length)];
-        const group = groups.find(g => g.id === article.groupId);
+        const product = sampleProducts[Math.floor(Math.random() * sampleProducts.length)];
         const quantity = Math.floor(Math.random() * 5) + 1;
         const discount = Math.random() > 0.7 ? Math.floor(Math.random() * 15) : 0;
-        const taxRate = parseFloat(article.tax || "11");
+        const taxRate = product.tax;
 
-        const subtotal = article.price * quantity;
+        const subtotal = product.price * quantity;
         const discountAmount = subtotal * (discount / 100);
         const afterDiscount = subtotal - discountAmount;
         const taxAmount = afterDiscount * (taxRate / 100);
@@ -298,14 +249,13 @@ async function main() {
         totalTTC += afterDiscount + taxAmount;
 
         items.push({
-          product: article.title,
-          price: article.price,
+          product: product.title,
+          price: product.price,
           quantity,
           discount,
           tax: taxRate,
-          unite: article.unite,
-          groupId: group?.id,
-          description: `${article.title} - Prestation pour ${client.name}`,
+          unite: product.unite,
+          description: `${product.title} - Prestation pour ${client.name}`,
         });
       }
 
@@ -346,12 +296,11 @@ async function main() {
     const employee = allEmployees[Math.floor(Math.random() * allEmployees.length)];
     const creditDate = randomDate(startOfYear, today);
 
-    const article = articles[Math.floor(Math.random() * articles.length)];
-    const group = groups.find(g => g.id === article.groupId);
+    const product = sampleProducts[Math.floor(Math.random() * sampleProducts.length)];
     const quantity = Math.floor(Math.random() * 3) + 1;
-    const taxRate = parseFloat(article.tax || "11");
+    const taxRate = product.tax;
 
-    const totalHT = article.price * quantity;
+    const totalHT = product.price * quantity;
     const totalTTC = totalHT * (1 + taxRate / 100);
 
     const credit = await prisma.invoice.create({
@@ -369,13 +318,12 @@ async function main() {
         wording: "Avoir - Remboursement partiel",
         items: {
           create: [{
-            product: article.title,
-            price: article.price,
+            product: product.title,
+            price: product.price,
             quantity,
             discount: 0,
             tax: taxRate,
-            unite: article.unite,
-            groupId: group?.id,
+            unite: product.unite,
             description: `Avoir pour ${client.name}`,
           }],
         },
@@ -405,26 +353,24 @@ async function main() {
     let totalTTC = 0;
 
     for (let j = 0; j < numItems; j++) {
-      const article = articles[Math.floor(Math.random() * articles.length)];
-      const group = groups.find(g => g.id === article.groupId);
+      const product = sampleProducts[Math.floor(Math.random() * sampleProducts.length)];
       const quantity = Math.floor(Math.random() * 10) + 1;
-      const taxRate = parseFloat(article.tax || "11");
+      const taxRate = product.tax;
 
-      const subtotal = article.price * quantity;
+      const subtotal = product.price * quantity;
       const taxAmount = subtotal * (taxRate / 100);
 
       totalHT += subtotal;
       totalTTC += subtotal + taxAmount;
 
       items.push({
-        product: article.title,
-        price: article.price,
+        product: product.title,
+        price: product.price,
         quantity,
         discount: 0,
         tax: taxRate,
-        unite: article.unite,
-        groupId: group?.id,
-        description: `Devis - ${article.title}`,
+        unite: product.unite,
+        description: `Devis - ${product.title}`,
       });
     }
 
@@ -476,8 +422,6 @@ async function main() {
   console.log("\n📊 Summary:");
   console.log(`   - 1 Company`);
   console.log(`   - ${taxes.length} Taxes`);
-  console.log(`   - ${groups.length} Groups`);
-  console.log(`   - ${articles.length} Articles`);
   console.log(`   - ${1 + 1 + 1 + employees.length + clients.length} Users`);
   console.log(`   - ${invoices.length} Invoices`);
   console.log(`   - ${credits.length} Credits (Avoirs)`);

@@ -28,11 +28,7 @@ import {
   FileX,
   FileCheck,
   CalendarClock,
-  Percent,
-  Info,
   Building,
-  Banknote,
-  Shield,
   LucideIcon,
   X,
 } from "lucide-react";
@@ -87,32 +83,11 @@ const getNavItems = (role: Role | undefined, t: (key: TranslationKey) => string)
       roles: ["OWNER", "ADMIN"],
     },
     {
-      icon: <FolderOpen className="w-5 h-5" />,
-      name: t("groups"),
-      nameKey: "groups",
-      path: "/groups",
-      roles: ["OWNER", "ADMIN"],
-    },
-    {
       icon: <FileX className="w-5 h-5" />,
       name: t("credits"),
       nameKey: "credits",
       path: "/avoirs",
       roles: ["OWNER", "ADMIN", "MANAGER", "EMPLOYEE"],
-    },
-    {
-      icon: <Banknote className="w-5 h-5" />,
-      name: t("transfers"),
-      nameKey: "transfers",
-      path: "/transfers",
-      roles: ["OWNER", "ADMIN"],
-    },
-    {
-      icon: <Percent className="w-5 h-5" />,
-      name: t("taxes"),
-      nameKey: "taxes",
-      path: "/taxes",
-      roles: ["OWNER", "ADMIN"],
     },
     {
       icon: <Building className="w-5 h-5" />,
@@ -122,21 +97,15 @@ const getNavItems = (role: Role | undefined, t: (key: TranslationKey) => string)
       roles: ["SUPER_ADMIN"],
     },
     {
-      icon: <Shield className="w-5 h-5" />,
-      name: t("users"),
-      nameKey: "users",
-      path: "/users",
-      roles: ["OWNER"],
-    },
-    {
       icon: <CalendarClock className="w-5 h-5" />,
       name: t("subscriptionInvoices"),
       nameKey: "subscriptionInvoices",
       path: "/subscription-invoices",
-      roles: ["OWNER"],
+      roles: ["OWNER", "ADMIN", "EMPLOYEE"],
     },
   ];
 
+  if (!role) return [];
   return allItems.filter((item) => item.roles?.includes(role));
 };
 
@@ -144,15 +113,6 @@ const getOthersItems = (role: Role | undefined, t: (key: TranslationKey) => stri
   if (!role) return [];
 
   const items: NavItem[] = [];
-
-  if (["OWNER"].includes(role)) {
-    items.push({
-      icon: <Info className="w-5 h-5" />,
-      name: t("information"),
-      nameKey: "information",
-      path: "/company",
-    });
-  }
 
   // Profile for all roles
   items.push({

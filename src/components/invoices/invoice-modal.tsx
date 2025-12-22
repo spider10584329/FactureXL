@@ -18,7 +18,6 @@ import {
 
 interface InvoiceItem {
   id: string;
-  groupId: string;
   product: string;
   internRef: string;
   description: string;
@@ -39,23 +38,6 @@ interface Employee {
   id: string;
   name: string;
   email: string;
-}
-
-interface Group {
-  id: string;
-  name: string;
-  color: string;
-  articles: Article[];
-}
-
-interface Article {
-  id: string;
-  title: string;
-  price: number;
-  code: string;
-  internRef: string;
-  unite: string;
-  tax: string;
 }
 
 interface InvoiceData {
@@ -84,10 +66,11 @@ export function InvoiceModal({ open, onOpenChange, onSuccess, type = "invoice", 
   const [employeeId, setEmployeeId] = useState("");
   const [commentary, setCommentary] = useState("");
   const [wording, setWording] = useState("");
+  const [validUntil, setValidUntil] = useState("");
+  const [temporaryClientName, setTemporaryClientName] = useState("");
   const [items, setItems] = useState<InvoiceItem[]>([
     {
       id: Math.random().toString(),
-      groupId: "",
       product: "",
       internRef: "",
       description: "",
@@ -95,14 +78,13 @@ export function InvoiceModal({ open, onOpenChange, onSuccess, type = "invoice", 
       price: 0,
       discount: 0,
       unite: "",
-      tax: 0,
+      tax: 11,
     },
   ]);
 
   // Data from API
   const [clients, setClients] = useState<Client[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
-  const [groups, setGroups] = useState<Group[]>([]);
 
   const isEditMode = !!invoice;
 
@@ -110,6 +92,12 @@ export function InvoiceModal({ open, onOpenChange, onSuccess, type = "invoice", 
   useEffect(() => {
     if (open) {
       loadData();
+      // Set default validUntil to 15 days from now for new quotes
+      if (!invoice && type === "devis") {
+        const defaultDate = new Date();
+        defaultDate.setDate(defaultDate.getDate() + 15);
+        setValidUntil(defaultDate.toISOString().split('T')[0]);
+      }
     }
   }, [open]);
 
@@ -120,11 +108,12 @@ export function InvoiceModal({ open, onOpenChange, onSuccess, type = "invoice", 
       setEmployeeId(invoice.employeeId || "");
       setWording(invoice.wording || "");
       setCommentary(invoice.commentary || "");
+      setValidUntil((invoice as any).validUntil?.split('T')[0] || "");
+      setTemporaryClientName((invoice as any).temporaryClientName || "");
       if (invoice.items && invoice.items.length > 0) {
         setItems(
           invoice.items.map((item: any) => ({
             id: item.id || Math.random().toString(),
-            groupId: item.groupId || "",
             product: item.product || "",
             internRef: item.internRef || "",
             description: item.description || "",
@@ -132,7 +121,7 @@ export function InvoiceModal({ open, onOpenChange, onSuccess, type = "invoice", 
             price: item.price || 0,
             discount: item.discount || 0,
             unite: item.unite || "",
-            tax: item.tax || 0,
+            tax: item.tax || 11,
           }))
         );
       }
@@ -151,10 +140,10 @@ export function InvoiceModal({ open, onOpenChange, onSuccess, type = "invoice", 
     setEmployeeId("");
     setCommentary("");
     setWording("");
+    setTemporaryClientName("");
     setItems([
       {
         id: Math.random().toString(),
-        groupId: "",
         product: "",
         internRef: "",
         description: "",
@@ -162,22 +151,20 @@ export function InvoiceModal({ open, onOpenChange, onSuccess, type = "invoice", 
         price: 0,
         discount: 0,
         unite: "",
-        tax: 0,
+        tax: 11,
       },
     ]);
   };
 
   const loadData = async () => {
     try {
-      const [clientsRes, employeesRes, groupsRes] = await Promise.all([
+      const [clientsRes, employeesRes] = await Promise.all([
         axios.get("/api/users?role=CLIENT"),
         axios.get("/api/users?role=EMPLOYEE"),
-        axios.get("/api/groups"),
       ]);
 
       setClients(clientsRes.data);
       setEmployees(employeesRes.data);
-      setGroups(groupsRes.data);
     } catch (error) {
       toast.error(language === "en" ? "Error loading data" : "Erreur lors du chargement des données");
     }
@@ -188,7 +175,6 @@ export function InvoiceModal({ open, onOpenChange, onSuccess, type = "invoice", 
       ...items,
       {
         id: Math.random().toString(),
-        groupId: "",
         product: "",
         internRef: "",
         description: "",
@@ -196,7 +182,7 @@ export function InvoiceModal({ open, onOpenChange, onSuccess, type = "invoice", 
         price: 0,
         discount: 0,
         unite: "",
-        tax: 0,
+        tax: 11,
       },
     ]);
   };
@@ -211,47 +197,6 @@ export function InvoiceModal({ open, onOpenChange, onSuccess, type = "invoice", 
     setItems((prevItems) =>
       prevItems.map((item) => (item.id === id ? { ...item, [field]: value } : item))
     );
-  };
-
-  const handleGroupChange = (itemId: string, groupId: string) => {
-    setItems((prevItems) =>
-      prevItems.map((item) =>
-        item.id === itemId
-          ? {
-              ...item,
-              groupId,
-              product: "",
-              price: 0,
-              internRef: "",
-              unite: "",
-              tax: 0,
-            }
-          : item
-      )
-    );
-  };
-
-  const handleArticleChange = (itemId: string, articleId: string) => {
-    const item = items.find((i) => i.id === itemId);
-    const group = groups.find((g) => g.id === item?.groupId);
-    const article = group?.articles.find((a) => a.id === articleId);
-
-    if (article) {
-      setItems((prevItems) =>
-        prevItems.map((item) =>
-          item.id === itemId
-            ? {
-                ...item,
-                product: article.title,
-                price: article.price,
-                internRef: article.internRef || "",
-                unite: article.unite || "",
-                tax: parseFloat(article.tax || "0"),
-              }
-            : item
-        )
-      );
-    }
   };
 
   const calculateItemTotal = (item: InvoiceItem) => {
@@ -312,6 +257,32 @@ export function InvoiceModal({ open, onOpenChange, onSuccess, type = "invoice", 
       return;
     }
 
+    // Validate temporary client name if TEMPORAIRE is selected
+    if (clientId === "TEMPORAIRE" && !temporaryClientName.trim()) {
+      toast.error(language === "en" ? "Please enter the temporary client name" : "Veuillez saisir le nom du client temporaire");
+      return;
+    }
+
+    // Validate validUntil for quotes
+    if (type === "devis") {
+      if (!validUntil) {
+        toast.error(language === "en" ? "Please set a valid until date" : "Veuillez définir une date de validité");
+        return;
+      }
+      
+      const selectedDate = new Date(validUntil);
+      selectedDate.setHours(0, 0, 0, 0); // Reset time to midnight for accurate comparison
+      
+      const minDate = new Date();
+      minDate.setHours(0, 0, 0, 0); // Reset time to midnight
+      minDate.setDate(minDate.getDate() + 14); // 14 days from now means 15 days minimum (including today)
+      
+      if (selectedDate <= minDate) {
+        toast.error(language === "en" ? "Valid until date must be at least 15 days from today" : "La date de validité doit être d'au moins 15 jours à partir d'aujourd'hui");
+        return;
+      }
+    }
+
     if (items.some((item) => !item.product || item.quantity <= 0)) {
       toast.error(language === "en" ? "Please fill in all articles" : "Veuillez remplir tous les articles");
       return;
@@ -320,11 +291,31 @@ export function InvoiceModal({ open, onOpenChange, onSuccess, type = "invoice", 
     setLoading(true);
 
     try {
+      let actualClientId = clientId;
+
+      // If TEMPORAIRE is selected, create a new temporary client first
+      if (clientId === "TEMPORAIRE" && temporaryClientName.trim()) {
+        try {
+          const tempClientResponse = await axios.post("/api/users", {
+            name: temporaryClientName.trim(),
+            email: `temp_${Date.now()}_${Math.random().toString(36).substring(7)}@temporary.local`,
+            password: `TEMP_${Date.now()}`,
+            role: "CLIENT",
+            isActive: false, // Inactive so they can't log in
+          });
+          actualClientId = tempClientResponse.data.id;
+        } catch (error) {
+          toast.error(language === "en" ? "Error creating temporary client" : "Erreur lors de la création du client temporaire");
+          setLoading(false);
+          return;
+        }
+      }
+
       const totalHT = calculateTotalHT();
       const total = calculateTotal();
 
-      const invoiceData = {
-        clientId,
+      const invoiceData: any = {
+        clientId: actualClientId,
         employeeId: employeeId || undefined,
         wording,
         commentary,
@@ -332,7 +323,6 @@ export function InvoiceModal({ open, onOpenChange, onSuccess, type = "invoice", 
         totalHT,
         total,
         items: items.map((item) => ({
-          groupId: item.groupId,
           product: item.product,
           internRef: item.internRef,
           description: item.description,
@@ -343,6 +333,11 @@ export function InvoiceModal({ open, onOpenChange, onSuccess, type = "invoice", 
           tax: item.tax,
         })),
       };
+
+      // Add validUntil for quotes
+      if (type === "devis" && validUntil) {
+        invoiceData.validUntil = validUntil;
+      }
 
       if (isEditMode && invoice) {
         await axios.put(`/api/invoices/${invoice.id}`, invoiceData);
@@ -387,11 +382,18 @@ export function InvoiceModal({ open, onOpenChange, onSuccess, type = "invoice", 
               <Label className="label-angular">{t("client")} *</Label>
               <select
                 value={clientId}
-                onChange={(e) => setClientId(e.target.value)}
+                onChange={(e) => {
+                  setClientId(e.target.value);
+                  // Clear temporary name when switching away from TEMPORAIRE
+                  if (e.target.value !== "TEMPORAIRE") {
+                    setTemporaryClientName("");
+                  }
+                }}
                 className="form-field-angular w-full mt-1"
                 required
               >
                 <option value="">{language === "en" ? "Select a client" : "Sélectionner un client"}</option>
+                <option value="TEMPORAIRE">TEMPORAIRE</option>
                 {clients.map((client) => (
                   <option key={client.id} value={client.id}>
                     {client.name} - {client.email}
@@ -416,6 +418,38 @@ export function InvoiceModal({ open, onOpenChange, onSuccess, type = "invoice", 
               </select>
             </div>
           </div>
+
+          {/* Temporary Client Name field - shown when TEMPORAIRE is selected */}
+          {clientId === "TEMPORAIRE" && (
+            <div className="mb-6">
+              <Label className="label-angular">{language === "en" ? "Temporary Client" : "Client Temporaire"} *</Label>
+              <Input
+                value={temporaryClientName}
+                onChange={(e) => setTemporaryClientName(e.target.value)}
+                className="form-field-angular mt-1"
+                placeholder={language === "en" ? "Enter client name" : "Saisir le nom du client"}
+                required
+              />
+            </div>
+          )}
+
+          {/* Valid Until field for quotes */}
+          {type === "devis" && (
+            <div className="mb-6">
+              <Label className="label-angular">{language === "en" ? "Valid Until" : "Valide jusqu'au"} *</Label>
+              <Input
+                type="date"
+                value={validUntil}
+                onChange={(e) => setValidUntil(e.target.value)}
+                className="form-field-angular mt-1"
+                required
+                min={new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                {language === "en" ? "Minimum 15 days from today" : "Minimum 15 jours à partir d'aujourd'hui"}
+              </p>
+            </div>
+          )}
 
           {/* Wording */}
           <div className="mb-6">
@@ -446,8 +480,7 @@ export function InvoiceModal({ open, onOpenChange, onSuccess, type = "invoice", 
               <table className="table-angular">
                 <thead>
                   <tr>
-                    <th>{language === "en" ? "Group" : "Groupe"}</th>
-                    <th>{language === "en" ? "Article" : "Article"}</th>
+                    <th>{language === "en" ? "Product" : "Produit"}</th>
                     <th>{language === "en" ? "Int. Ref" : "Réf. Interne"}</th>
                     <th>{t("description")}</th>
                     <th>{language === "en" ? "Qty" : "Qté"}</th>
@@ -463,55 +496,13 @@ export function InvoiceModal({ open, onOpenChange, onSuccess, type = "invoice", 
                   {items.map((item) => (
                     <tr key={item.id}>
                       <td>
-                        <select
-                          value={item.groupId}
-                          onChange={(e) => handleGroupChange(item.id, e.target.value)}
-                          className="form-field-angular w-full"
-                          required
-                        >
-                          <option value="">{language === "en" ? "Group" : "Groupe"}</option>
-                          {groups.map((group) => (
-                            <option key={group.id} value={group.id}>
-                              {group.name}
-                            </option>
-                          ))}
-                        </select>
-                      </td>
-                      <td>
-                        <select
+                        <Input
                           value={item.product}
-                          onChange={(e) => {
-                            const selectedArticleTitle = e.target.value;
-                            if (selectedArticleTitle) {
-                              const group = groups.find((g) => g.id === item.groupId);
-                              const article = group?.articles.find(
-                                (a) => a.title === selectedArticleTitle
-                              );
-                              if (article) {
-                                handleArticleChange(item.id, article.id);
-                              }
-                            } else {
-                              // Clear article selection
-                              updateItem(item.id, "product", "");
-                              updateItem(item.id, "price", 0);
-                              updateItem(item.id, "internRef", "");
-                              updateItem(item.id, "unite", "");
-                              updateItem(item.id, "tax", 0);
-                            }
-                          }}
-                          className="form-field-angular w-full"
-                          disabled={!item.groupId}
+                          onChange={(e) => updateItem(item.id, "product", e.target.value)}
+                          className="form-field-angular w-40"
+                          placeholder={language === "en" ? "Product name" : "Nom du produit"}
                           required
-                        >
-                          <option value="">Article</option>
-                          {groups
-                            .find((g) => g.id === item.groupId)
-                            ?.articles.map((article) => (
-                              <option key={article.id} value={article.title}>
-                                {article.title}
-                              </option>
-                            ))}
-                        </select>
+                        />
                       </td>
                       <td>
                         <Input

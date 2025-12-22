@@ -14,7 +14,6 @@ import axios from "axios";
 
 interface InvoiceItem {
   id: string;
-  groupId: string;
   product: string;
   internRef: string;
   description: string;
@@ -37,23 +36,6 @@ interface Employee {
   email: string;
 }
 
-interface Group {
-  id: string;
-  name: string;
-  color: string;
-  articles: Article[];
-}
-
-interface Article {
-  id: string;
-  title: string;
-  price: number;
-  code: string;
-  internRef: string;
-  unite: string;
-  tax: string;
-}
-
 interface Tax {
   id: string;
   name: string;
@@ -73,7 +55,6 @@ export default function NewInvoicePage() {
   const [items, setItems] = useState<InvoiceItem[]>([
     {
       id: Math.random().toString(),
-      groupId: "",
       product: "",
       internRef: "",
       description: "",
@@ -88,7 +69,6 @@ export default function NewInvoicePage() {
   // Data from API
   const [clients, setClients] = useState<Client[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
-  const [groups, setGroups] = useState<Group[]>([]);
   const [taxes, setTaxes] = useState<Tax[]>([]);
 
   // Load initial data
@@ -98,16 +78,14 @@ export default function NewInvoicePage() {
 
   const loadData = async () => {
     try {
-      const [clientsRes, employeesRes, groupsRes, taxesRes] = await Promise.all([
+      const [clientsRes, employeesRes, taxesRes] = await Promise.all([
         axios.get("/api/users?role=CLIENT"),
-        axios.get("/api/users?role=EMPLOYEE"),
-        axios.get("/api/groups"),
+        axios.get("/api/users?role=EMPLOYEE,ADMIN,OWNER"),
         axios.get("/api/tax"),
       ]);
 
       setClients(clientsRes.data);
       setEmployees(employeesRes.data);
-      setGroups(groupsRes.data);
       setTaxes(taxesRes.data);
     } catch (error) {
       toast.error("Erreur lors du chargement des données");
@@ -119,7 +97,6 @@ export default function NewInvoicePage() {
       ...items,
       {
         id: Math.random().toString(),
-        groupId: "",
         product: "",
         internRef: "",
         description: "",
@@ -142,25 +119,6 @@ export default function NewInvoicePage() {
     setItems(
       items.map((item) => (item.id === id ? { ...item, [field]: value } : item))
     );
-  };
-
-  const handleGroupChange = (itemId: string, groupId: string) => {
-    updateItem(itemId, "groupId", groupId);
-    updateItem(itemId, "product", "");
-    updateItem(itemId, "price", 0);
-  };
-
-  const handleArticleChange = (itemId: string, articleId: string) => {
-    const group = groups.find((g) => g.id === items.find((i) => i.id === itemId)?.groupId);
-    const article = group?.articles.find((a) => a.id === articleId);
-
-    if (article) {
-      updateItem(itemId, "product", article.title);
-      updateItem(itemId, "price", article.price);
-      updateItem(itemId, "internRef", article.internRef || "");
-      updateItem(itemId, "unite", article.unite || "");
-      updateItem(itemId, "tax", parseFloat(article.tax || "0"));
-    }
   };
 
   const calculateItemTotal = (item: InvoiceItem) => {
@@ -220,7 +178,6 @@ export default function NewInvoicePage() {
         totalHT,
         total,
         items: items.map((item) => ({
-          groupId: item.groupId,
           product: item.product,
           internRef: item.internRef,
           description: item.description,
@@ -318,7 +275,6 @@ export default function NewInvoicePage() {
                 <table className="table-angular">
                   <thead>
                     <tr>
-                      <th>Groupe</th>
                       <th>Article</th>
                       <th>Réf. Interne</th>
                       <th>Description</th>
@@ -335,45 +291,13 @@ export default function NewInvoicePage() {
                     {items.map((item, index) => (
                       <tr key={item.id}>
                         <td>
-                          <select
-                            value={item.groupId}
-                            onChange={(e) => handleGroupChange(item.id, e.target.value)}
-                            className="form-field-angular w-full"
-                            required
-                          >
-                            <option value="">Groupe</option>
-                            {groups.map((group) => (
-                              <option key={group.id} value={group.id}>
-                                {group.name}
-                              </option>
-                            ))}
-                          </select>
-                        </td>
-                        <td>
-                          <select
+                          <Input
                             value={item.product}
-                            onChange={(e) => {
-                              const group = groups.find((g) => g.id === item.groupId);
-                              const article = group?.articles.find(
-                                (a) => a.title === e.target.value
-                              );
-                              if (article) {
-                                handleArticleChange(item.id, article.id);
-                              }
-                            }}
+                            onChange={(e) => updateItem(item.id, "product", e.target.value)}
                             className="form-field-angular w-full"
-                            disabled={!item.groupId}
+                            placeholder="Nom de l'article"
                             required
-                          >
-                            <option value="">Article</option>
-                            {groups
-                              .find((g) => g.id === item.groupId)
-                              ?.articles.map((article) => (
-                                <option key={article.id} value={article.title}>
-                                  {article.title}
-                                </option>
-                              ))}
-                          </select>
+                          />
                         </td>
                         <td>
                           <Input

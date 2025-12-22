@@ -13,8 +13,10 @@ import { TableSkeleton } from "@/components/ui/loading";
 import axios from "axios";
 import { downloadInvoicePDF } from "@/lib/pdf-generator";
 import { toast as customToast } from "@/lib/toast";
+import { useLanguage } from "@/lib/i18n";
 
 export default function EmployeeInvoicesPage() {
+  const { language } = useLanguage();
   const params = useParams();
   const router = useRouter();
   const employeeId = params.id as string;
@@ -247,7 +249,7 @@ export default function EmployeeInvoicesPage() {
                            "Devis"}
                         </Badge>
                       </td>
-                      <td>{formatDate(invoice.createdAt)}</td>
+                      <td>{formatDate(invoice.createdAt, language === "en" ? "en-US" : "fr-FR")}</td>
                       <td className="font-medium">
                         {roundToCFP(invoice.totalHT || 0).toLocaleString('fr-FR')} CFP
                       </td>
@@ -265,7 +267,7 @@ export default function EmployeeInvoicesPage() {
                         )}
                       </td>
                       <td>
-                        {invoice.paymentDate ? formatDate(invoice.paymentDate) : "-"}
+                        {invoice.paymentDate ? formatDate(invoice.paymentDate, language === "en" ? "en-US" : "fr-FR") : "-"}
                       </td>
                       <td>
                         <div className="flex items-center justify-center gap-1">

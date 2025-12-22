@@ -20,7 +20,7 @@ import { Pagination } from "@/components/ui/pagination";
 const ITEMS_PER_PAGE_DEFAULT = 20;
 
 export default function TransfersPage() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "confirmed" | "pending">("all");
   const [currentPage, setCurrentPage] = useState(1);
@@ -269,7 +269,7 @@ export default function TransfersPage() {
                         <td className="font-semibold text-primary px-2 sm:px-4">
                           <div className="min-w-[100px]">{transfer.ref}</div>
                         </td>
-                        <td className="px-2 sm:px-4 hidden lg:table-cell">{formatDate(transfer.createdAt)}</td>
+                        <td className="px-2 sm:px-4 hidden lg:table-cell">{formatDate(transfer.createdAt, language === "en" ? "en-US" : "fr-FR")}</td>
                         <td className="font-bold text-primary px-2 sm:px-4">
                           <div className="whitespace-nowrap text-sm sm:text-base">
                             {roundToCFP(transfer.total || 0).toLocaleString('fr-FR')} <span className="text-xs sm:text-sm">CFP</span>
@@ -291,7 +291,7 @@ export default function TransfersPage() {
                           )}
                         </td>
                         <td className="px-2 sm:px-4 hidden xl:table-cell">
-                          {transfer.paymentDate ? formatDate(transfer.paymentDate) : "-"}
+                          {transfer.paymentDate ? formatDate(transfer.paymentDate, language === "en" ? "en-US" : "fr-FR") : "-"}
                         </td>
                         <td className="px-2 sm:px-4">
                           <div className="flex items-center justify-center gap-1">

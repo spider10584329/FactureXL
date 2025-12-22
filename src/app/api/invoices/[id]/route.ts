@@ -36,11 +36,7 @@ export async function GET(
           },
         },
         company: true,
-        items: {
-          include: {
-            group: true,
-          },
-        },
+        items: true,
       },
     });
 
@@ -122,6 +118,7 @@ export async function PUT(
         ...invoiceData,
         startDate: invoiceData.startDate ? new Date(invoiceData.startDate) : undefined,
         endDate: invoiceData.endDate ? new Date(invoiceData.endDate) : undefined,
+        validUntil: invoiceData.validUntil ? new Date(invoiceData.validUntil) : undefined,
         paymentDate: invoiceData.paymentDate ? new Date(invoiceData.paymentDate) : undefined,
         subscriptionMonths: invoiceData.subscriptionMonths
           ? JSON.stringify(invoiceData.subscriptionMonths)
@@ -139,7 +136,6 @@ export async function PUT(
                 discount: item.discount || 0,
                 unite: item.unite,
                 tax: item.tax || 0,
-                groupId: item.groupId,
               })),
             }
           : undefined,
@@ -147,11 +143,7 @@ export async function PUT(
       include: {
         client: true,
         employee: true,
-        items: {
-          include: {
-            group: true,
-          },
-        },
+        items: true,
       },
     });
 

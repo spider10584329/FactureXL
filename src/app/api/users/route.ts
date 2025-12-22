@@ -15,8 +15,9 @@ const createUserSchema = z.object({
   zipCode: z.string().optional(),
   phone: z.string().optional(),
   discount: z.number().optional(),
-  code: z.string().optional(),
+  code: z.string().optional().nullable(),
   paymentMethod: z.string().optional(),
+  isActive: z.boolean().optional(),
 });
 
 export async function GET(request: Request) {
@@ -53,6 +54,16 @@ export async function GET(request: Request) {
         code: true,
         turnover: true,
         paymentMethod: true,
+        contracts: {
+          orderBy: { createdAt: "desc" },
+          take: 1,
+          select: {
+            id: true,
+            name: true,
+            url: true,
+            createdAt: true,
+          },
+        },
         createdAt: true,
         updatedAt: true,
       },
@@ -84,13 +95,27 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Email already exists" }, { status: 400 });
     }
 
+    // Check for duplicate code if provided
+    if (validatedData.code && validatedData.code.trim() !== "") {
+      const existingCode = await prisma.user.findFirst({
+        where: { 
+          code: validatedData.code,
+          companyId: session.user.companyId,
+        },
+      });
+
+      if (existingCode) {
+        return NextResponse.json({ error: "Client code already exists" }, { status: 400 });
+      }
+    }
+
     const hashedPassword = await bcrypt.hash(validatedData.password, 10);
 
     const user = await prisma.user.create({
       data: {
         ...validatedData,
         password: hashedPassword,
-        isActive: true,
+        isActive: validatedData.isActive ?? true,
         companyId: session.user.companyId,
       },
       select: {

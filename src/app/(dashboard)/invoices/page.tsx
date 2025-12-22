@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
@@ -32,6 +32,10 @@ export default function InvoicesPage() {
   const [itemsPerPage, setItemsPerPage] = useState(ITEMS_PER_PAGE_DEFAULT);
   const [showNewInvoiceModal, setShowNewInvoiceModal] = useState(false);
   const [editingInvoice, setEditingInvoice] = useState<any>(null);
+  const [isImportingInvoices, setIsImportingInvoices] = useState(false);
+  const importInvoicesInputRef = useRef<HTMLInputElement | null>(null);
+  const [isImportingClientsDbf, setIsImportingClientsDbf] = useState(false);
+  const importClientsDbfInputRef = useRef<HTMLInputElement | null>(null);
   const queryClient = useQueryClient();
   const confirm = useConfirm();
   const { data: session } = useSession();
@@ -269,21 +273,173 @@ export default function InvoicesPage() {
     }
   };
 
+  const handleExportInvoicesCsv = async () => {
+    try {
+      const res = await fetch("/api/exports/ebatch-csv");
+      if (!res.ok) throw new Error("Failed to export CSV");
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "invoices.csv";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (e) {
+      customToast.error(language === "en" ? "Invoice CSV export failed" : "Export CSV des factures échoué");
+    }
+  };
+
+  const handleExportInvoicesDbf = async () => {
+    try {
+      const res = await fetch("/api/exports/clients-dbf");
+      if (!res.ok) throw new Error("Failed to export DBF");
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "invoices.dbf";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (e) {
+      customToast.error(language === "en" ? "Invoice DBF export failed" : "Export DBF des factures échoué");
+    }
+  };
+
+  const handleImportInvoicesCsv = async (file: File) => {
+    setIsImportingInvoices(true);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+
+      const res = await fetch("/api/imports/invoices", {
+        method: "POST",
+        body: form,
+      });
+
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(payload?.error || "Import failed");
+
+      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      customToast.success(
+        language === "en"
+          ? `Invoices imported. Created: ${payload.created ?? 0}, Skipped: ${payload.skipped ?? 0}`
+          : `Factures importées. Créées : ${payload.created ?? 0}, Ignorées : ${payload.skipped ?? 0}`
+      );
+    } catch (e: any) {
+      customToast.error(e?.message || (language === "en" ? "CSV import failed" : "Import CSV échoué"));
+    } finally {
+      setIsImportingInvoices(false);
+      if (importInvoicesInputRef.current) importInvoicesInputRef.current.value = "";
+    }
+  };
+
+  const handleImportClientsDbf = async (file: File) => {
+    setIsImportingClientsDbf(true);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+
+      const res = await fetch("/api/imports/clients", {
+        method: "POST",
+        body: form,
+      });
+
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(payload?.error || "Import failed");
+
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      customToast.success(
+        language === "en"
+          ? `Clients imported. Created: ${payload.created ?? 0}, Updated: ${payload.updated ?? 0}`
+          : `Clients importés. Créés : ${payload.created ?? 0}, Mis à jour : ${payload.updated ?? 0}`
+      );
+    } catch (e: any) {
+      customToast.error(e?.message || (language === "en" ? "DBF import failed" : "Import DBF échoué"));
+    } finally {
+      setIsImportingClientsDbf(false);
+      if (importClientsDbfInputRef.current) importClientsDbfInputRef.current.value = "";
+    }
+  };
+
   return (
-    <div className="container mx-auto py-4 sm:py-6 px-3 sm:px-4">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">{t("invoices")}</h1>
-        </div>
-        {isOwnerOrAdmin && (
-          <Button
-            className="btn-angular bg-primary text-white hover:bg-primary/90 w-full sm:w-auto"
-            onClick={() => setShowNewInvoiceModal(true)}
-          >
-            <Plus className="mr-2 h-4 w-4" /> {t("newInvoice")}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-2xl font-bold">{t("invoices")}</h1>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          {isOwnerOrAdmin && (
+            <>
+              <input
+                ref={importInvoicesInputRef}
+                type="file"
+                accept=".csv,text/csv"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) void handleImportInvoicesCsv(file);
+                }}
+              />
+              <input
+                ref={importClientsDbfInputRef}
+                type="file"
+                accept=".dbf,application/octet-stream"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) void handleImportClientsDbf(file);
+                }}
+              />
+
+              <Button
+                variant="outline"
+                className="w-full sm:w-auto"
+                onClick={() => importInvoicesInputRef.current?.click()}
+                disabled={isImportingInvoices}
+              >
+                {isImportingInvoices
+                  ? language === "en"
+                    ? "Importing..."
+                    : "Import en cours..."
+                  : language === "en"
+                  ? "Import Invoices CSV"
+                  : "Importer Factures CSV"}
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full sm:w-auto"
+                onClick={() => importClientsDbfInputRef.current?.click()}
+                disabled={isImportingClientsDbf}
+              >
+                {isImportingClientsDbf
+                  ? language === "en"
+                    ? "Importing..."
+                    : "Import en cours..."
+                  : language === "en"
+                  ? "Import Invoices DBF"
+                  : "Importer Factures DBF"}
+              </Button>
+
+              <Button variant="outline" className="w-full sm:w-auto" onClick={handleExportInvoicesCsv}>
+                <Download className="w-4 h-4 mr-2" />
+                {language === "en" ? "Export Invoices CSV" : "Exporter Factures CSV"}
+              </Button>
+              <Button variant="outline" className="w-full sm:w-auto" onClick={handleExportInvoicesDbf}>
+                <Download className="w-4 h-4 mr-2" />
+                {language === "en" ? "Export Invoices DBF" : "Exporter Factures DBF"}
+              </Button>
+            </>
+          )}
+          <Button onClick={() => setShowNewInvoiceModal(true)} className="w-full sm:w-auto">
+            <Plus className="w-4 h-4 mr-2" />
+            {language === "en" ? "New invoice" : "Nouvelle facture"}
           </Button>
-        )}
+        </div>
       </div>
 
       {/* Payment Bar for Clients */}
@@ -296,7 +452,7 @@ export default function InvoicesPage() {
                   {selectedInvoices.length} {t("invoicesSelected")}
                 </span>
                 <span className="text-xl sm:text-2xl font-bold text-primary">
-                  {roundToCFP(calculateSelectedTotal()).toLocaleString('fr-FR')} CFP
+                  {roundToCFP(calculateSelectedTotal()).toLocaleString("fr-FR")} CFP
                 </span>
               </div>
               <div className="flex flex-col sm:flex-row gap-2">
@@ -340,32 +496,6 @@ export default function InvoicesPage() {
                 className="pl-9 w-full"
               />
             </div>
-            <div className="flex gap-2 flex-wrap sm:flex-nowrap">
-              <Button
-                variant={filter === "all" ? "default" : "outline"}
-                className="btn-angular flex-1 sm:flex-initial"
-                size="sm"
-                onClick={() => setFilter("all")}
-              >
-                {t("all")}
-              </Button>
-              <Button
-                variant={filter === "paid" ? "default" : "outline"}
-                className="btn-angular flex-1 sm:flex-initial"
-                size="sm"
-                onClick={() => setFilter("paid")}
-              >
-                {t("paid")}
-              </Button>
-              <Button
-                variant={filter === "pending" ? "default" : "outline"}
-                className="btn-angular flex-1 sm:flex-initial"
-                size="sm"
-                onClick={() => setFilter("pending")}
-              >
-                {t("pending")}
-              </Button>
-            </div>
           </div>
         </CardHeader>
         <CardContent className="p-3 sm:p-6">
@@ -380,15 +510,15 @@ export default function InvoicesPage() {
               <table className="table-angular w-full text-xs sm:text-sm">
                 <thead>
                   <tr>
-                    {isClient && <th className="px-2 sm:px-4 py-2 whitespace-nowrap">{t("paymentMethod")}</th>}
+                    {isClient && (
+                      <th className="px-2 sm:px-4 py-2 whitespace-nowrap">{t("paymentMethod")}</th>
+                    )}
                     <th className="px-2 sm:px-4 py-2 whitespace-nowrap">#</th>
                     <th className="px-2 sm:px-4 py-2 whitespace-nowrap min-w-[100px]">{t("clients")}</th>
                     <th className="px-2 sm:px-4 py-2 whitespace-nowrap">{t("reference")}</th>
                     <th className="px-2 sm:px-4 py-2 whitespace-nowrap hidden md:table-cell">{t("creationDate")}</th>
                     <th className="px-2 sm:px-4 py-2 whitespace-nowrap hidden lg:table-cell">{t("totalHT")}</th>
                     <th className="px-2 sm:px-4 py-2 whitespace-nowrap">{t("totalTTC")}</th>
-                    <th className="px-2 sm:px-4 py-2 whitespace-nowrap">{t("status")}</th>
-                    <th className="px-2 sm:px-4 py-2 whitespace-nowrap hidden xl:table-cell">{t("paymentDate")}</th>
                     <th className="px-2 sm:px-4 py-2 whitespace-nowrap">{t("actions")}</th>
                   </tr>
                 </thead>
@@ -408,34 +538,21 @@ export default function InvoicesPage() {
                         </td>
                       )}
                       <td className="px-2 sm:px-4 py-2 font-medium">{startIndex + index + 1}</td>
-                      <td className="px-2 sm:px-4 py-2 truncate max-w-[120px]" title={invoice.client?.name || "-"}>{invoice.client?.name || "-"}</td>
+                      <td
+                        className="px-2 sm:px-4 py-2 truncate max-w-[120px]"
+                        title={invoice.client?.name || "-"}
+                      >
+                        {invoice.client?.name || "-"}
+                      </td>
                       <td className="px-2 sm:px-4 py-2 font-semibold text-primary whitespace-nowrap">{invoice.ref}</td>
-                      <td className="px-2 sm:px-4 py-2 hidden md:table-cell whitespace-nowrap">{formatDate(invoice.createdAt)}</td>
-                      <td className="px-2 sm:px-4 py-2 font-medium hidden lg:table-cell whitespace-nowrap">{roundToCFP(invoice.totalHT || 0).toLocaleString('fr-FR')} CFP</td>
+                      <td className="px-2 sm:px-4 py-2 hidden md:table-cell whitespace-nowrap">
+                        {formatDate(invoice.createdAt, language === "en" ? "en-US" : "fr-FR")}
+                      </td>
+                      <td className="px-2 sm:px-4 py-2 font-medium hidden lg:table-cell whitespace-nowrap">
+                        {roundToCFP(invoice.totalHT || 0).toLocaleString("fr-FR")} CFP
+                      </td>
                       <td className="px-2 sm:px-4 py-2 font-bold text-primary whitespace-nowrap">
-                        {roundToCFP(invoice.total || 0).toLocaleString('fr-FR')} CFP
-                      </td>
-                      <td className="px-2 sm:px-4 py-2">
-                        {invoice.paid ? (
-                          <Badge variant="success" className="cursor-default">
-                            <CheckCircle className="h-3 w-3 mr-1" />
-                            {t("paid")}
-                          </Badge>
-                        ) : (
-                          <Badge
-                            variant="warning"
-                            className={isOwnerOrAdmin ? "cursor-pointer hover:opacity-80" : ""}
-                            onClick={() =>
-                              isOwnerOrAdmin &&
-                              markPaidMutation.mutate({ id: invoice.id, method: "Manuel" })
-                            }
-                          >
-                            {t("pending")}
-                          </Badge>
-                        )}
-                      </td>
-                      <td className="px-2 sm:px-4 py-2 hidden xl:table-cell whitespace-nowrap">
-                        {invoice.paymentDate ? formatDate(invoice.paymentDate) : "-"}
+                        {roundToCFP(invoice.total || 0).toLocaleString("fr-FR")} CFP
                       </td>
                       <td className="px-2 sm:px-4 py-2">
                         <div className="flex items-center justify-center gap-0.5 sm:gap-1">

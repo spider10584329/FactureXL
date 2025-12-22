@@ -38,12 +38,12 @@ export default withAuth(
         "/",
         "/clients",
         "/employees",
-        "/groups",
         "/invoices",
         "/avoirs",
         "/devis",
         "/transfers",
         "/taxes",
+        "/subscription-invoices",
         "/profile",
       ];
       if (!allowedPaths.some((p) => path === p || path.startsWith(p + "/"))) {
@@ -51,11 +51,11 @@ export default withAuth(
       }
     }
 
-    // MANAGER, EMPLOYEE - invoices, credits, quotes and info
+    // MANAGER, EMPLOYEE - invoices, credits, quotes, dashboard and info
     if (role === "MANAGER" || role === "EMPLOYEE") {
-      const allowedPaths = ["/invoices", "/avoirs", "/devis", "/profile"];
+      const allowedPaths = ["/", "/invoices", "/avoirs", "/devis", "/subscription-invoices", "/profile"];
       if (!allowedPaths.some((p) => path === p || path.startsWith(p + "/"))) {
-        return NextResponse.redirect(new URL("/invoices", req.url));
+        return NextResponse.redirect(new URL("/", req.url));
       }
     }
 

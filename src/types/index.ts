@@ -45,31 +45,6 @@ export interface Company {
   updatedAt: Date;
 }
 
-export interface Group {
-  id: string;
-  name: string;
-  account: string | null;
-  color: string | null;
-  companyId: string;
-  articles?: Article[];
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface Article {
-  id: string;
-  title: string;
-  price: number;
-  code: string | null;
-  internRef: string | null;
-  unite: string | null;
-  description: string | null;
-  tax: string | null;
-  groupId: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
 export interface Invoice {
   id: string;
   ref: string;
@@ -108,8 +83,6 @@ export interface InvoiceItem {
   unite: string | null;
   tax: number;
   invoiceId: string;
-  groupId: string | null;
-  group?: Group | null;
   createdAt: Date;
   updatedAt: Date;
 }

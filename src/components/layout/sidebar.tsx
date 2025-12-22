@@ -50,14 +50,13 @@ const getNavigationByRole = (role: Role | undefined): NavItem[] => {
       { key: "clients", href: "/clients", icon: Users },
       { key: "employees", href: "/employees", icon: UserCog },
       { key: "users", href: "/users", icon: Shield },
-      { key: "groups", href: "/groups", icon: FolderOpen },
       { key: "invoices", href: "/invoices", icon: FileText },
       { key: "credits", href: "/avoirs", icon: FileX },
       { key: "quotes", href: "/devis", icon: FileCheck },
-      { key: "transfers", href: "/transfers", icon: Banknote },
+      // { key: "transfers", href: "/transfers", icon: Banknote },
       { key: "subscriptionInvoices", href: "/subscription-invoices", icon: CalendarClock },
-      { key: "taxes", href: "/taxes", icon: Percent },
-      { key: "information", href: "/company", icon: Info },
+      // { key: "taxes", href: "/taxes", icon: Percent },
+      // { key: "information", href: "/company", icon: Info },
     ];
   }
 
@@ -76,13 +75,12 @@ const getNavigationByRole = (role: Role | undefined): NavItem[] => {
       { key: "dashboard", href: "/", icon: LayoutDashboard },
       { key: "clients", href: "/clients", icon: Users },
       { key: "employees", href: "/employees", icon: UserCog },
-      { key: "groups", href: "/groups", icon: FolderOpen },
       { key: "invoices", href: "/invoices", icon: FileText },
       { key: "credits", href: "/avoirs", icon: FileX },
       { key: "quotes", href: "/devis", icon: FileCheck },
-      { key: "transfers", href: "/transfers", icon: Banknote },
-      { key: "taxes", href: "/taxes", icon: Percent },
-      { key: "information", href: "/profile", icon: Info },
+      // { key: "transfers", href: "/transfers", icon: Banknote },
+      // { key: "taxes", href: "/taxes", icon: Percent },
+      // { key: "information", href: "/profile", icon: Info },
     ];
   }
 

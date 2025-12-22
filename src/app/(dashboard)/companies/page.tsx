@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/dialog";
 
 export default function CompaniesPage() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [search, setSearch] = useState("");
   const [showDialog, setShowDialog] = useState(false);
   const [editingCompany, setEditingCompany] = useState<any>(null);
@@ -244,7 +244,7 @@ export default function CompaniesPage() {
                           {company._count?.users || 0}
                         </Badge>
                       </td>
-                      <td>{formatDate(company.createdAt)}</td>
+                      <td>{formatDate(company.createdAt, language === "en" ? "en-US" : "fr-FR")}</td>
                       <td>
                         <div className="flex items-center justify-center gap-1">
                           <Button
