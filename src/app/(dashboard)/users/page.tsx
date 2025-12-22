@@ -19,7 +19,9 @@ export default function UsersPage() {
     queryKey: ["users"],
     queryFn: async () => {
       const res = await fetch("/api/users");
-      return res.json();
+      if (!res.ok) return [];
+      const data = await res.json();
+      return Array.isArray(data) ? data : [];
     },
   });
 

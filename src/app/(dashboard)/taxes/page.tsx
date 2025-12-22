@@ -30,7 +30,9 @@ export default function TaxesPage() {
     queryKey: ["taxes"],
     queryFn: async () => {
       const res = await fetch("/api/tax");
-      return res.json();
+      if (!res.ok) return [];
+      const data = await res.json();
+      return Array.isArray(data) ? data : [];
     },
   });
 

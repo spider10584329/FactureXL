@@ -56,7 +56,9 @@ export default function DashboardPage() {
     queryKey: ["invoices"],
     queryFn: async () => {
       const res = await fetch("/api/invoices");
-      return res.json();
+      if (!res.ok) return [];
+      const data = await res.json();
+      return Array.isArray(data) ? data : [];
     },
   });
 
@@ -64,7 +66,9 @@ export default function DashboardPage() {
     queryKey: ["users"],
     queryFn: async () => {
       const res = await fetch("/api/users");
-      return res.json();
+      if (!res.ok) return [];
+      const data = await res.json();
+      return Array.isArray(data) ? data : [];
     },
   });
 

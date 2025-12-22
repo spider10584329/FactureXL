@@ -85,10 +85,9 @@ export default function InvoicesPage() {
     queryKey: ["invoices", filter],
     queryFn: async () => {
       const res = await fetch("/api/invoices?type=invoice");
-      if (!res.ok) {
-        throw new Error('Failed to fetch invoices');
-      }
-      return res.json();
+      if (!res.ok) return [];
+      const data = await res.json();
+      return Array.isArray(data) ? data : [];
     },
     staleTime: 0, // Always consider data stale
     refetchOnWindowFocus: true, // Refetch when window regains focus
